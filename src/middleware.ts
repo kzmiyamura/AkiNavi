@@ -44,11 +44,12 @@ export async function middleware(request: NextRequest) {
   }
 
   // プロフィール取得（is_approved / role）
-  const { data: profile } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from('profiles')
     .select('is_approved, role')
     .eq('id', user.id)
     .single()
+  console.log('[middleware] user.id:', user.id, '| profile:', JSON.stringify(profile), '| error:', profileError?.message)
 
   // /pending は未承認ユーザー専用
   if (pathname === '/pending') {
