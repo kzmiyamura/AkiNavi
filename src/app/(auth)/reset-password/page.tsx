@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import { resetPassword } from '@/app/actions/auth'
 import { AuthCard } from '@/components/ui/AuthCard'
@@ -9,7 +9,17 @@ import { SubmitButton } from '@/components/ui/SubmitButton'
 import { ErrorMessage } from '@/components/ui/ErrorMessage'
 
 export default function ResetPasswordPage() {
-  const [state, action] = useActionState(resetPassword, undefined)
+  const [state, setState] = useState<{ error: string } | undefined>()
+  const [isPending, startTransition] = useTransition()
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const formData = new FormData(e.currentTarget)
+    startTransition(async () => {
+      const result = await resetPassword(undefined, formData)
+      setState(result)
+    })
+  }
 
   // error: '' は送信成功を意味する
   const isSent = state !== undefined && state.error === ''
@@ -47,7 +57,7 @@ export default function ResetPasswordPage() {
       title="パスワードリセット"
       description="登録済みのメールアドレスにリセット用リンクを送信します"
     >
-      <form action={action} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4">
         <FormField
           label="メールアドレス"
           name="email"
@@ -58,7 +68,7 @@ export default function ResetPasswordPage() {
 
         <ErrorMessage message={state?.error} />
 
-        <SubmitButton label="リセットメールを送信" loadingLabel="送信中..." />
+        <SubmitButton label="リセットメールを送信" loadingLabel="送信中..." isPending={isPending} />
       </form>
 
       <p className="mt-6 text-center text-sm">

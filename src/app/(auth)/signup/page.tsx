@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import { signUp } from '@/app/actions/auth'
 import { AuthCard } from '@/components/ui/AuthCard'
@@ -9,14 +9,24 @@ import { SubmitButton } from '@/components/ui/SubmitButton'
 import { ErrorMessage } from '@/components/ui/ErrorMessage'
 
 export default function SignUpPage() {
-  const [state, action] = useActionState(signUp, undefined)
+  const [error, setError] = useState<string>()
+  const [isPending, startTransition] = useTransition()
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const formData = new FormData(e.currentTarget)
+    startTransition(async () => {
+      const result = await signUp(undefined, formData)
+      if (result?.error) setError(result.error)
+    })
+  }
 
   return (
     <AuthCard
       title="新規登録"
       description="登録後、管理者の承認をもってご利用いただけます"
     >
-      <form action={action} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4">
         <FormField
           label="会社名"
           name="company_name"
@@ -44,9 +54,9 @@ export default function SignUpPage() {
           autoComplete="new-password"
         />
 
-        <ErrorMessage message={state?.error} />
+        <ErrorMessage message={error} />
 
-        <SubmitButton label="登録する" loadingLabel="登録中..." />
+        <SubmitButton label="登録する" loadingLabel="登録中..." isPending={isPending} />
       </form>
 
       <p className="mt-6 text-center text-sm text-slate-500">

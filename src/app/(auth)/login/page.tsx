@@ -1,6 +1,6 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import { login } from '@/app/actions/auth'
 import { AuthCard } from '@/components/ui/AuthCard'
@@ -9,11 +9,21 @@ import { SubmitButton } from '@/components/ui/SubmitButton'
 import { ErrorMessage } from '@/components/ui/ErrorMessage'
 
 export default function LoginPage() {
-  const [state, action] = useActionState(login, undefined)
+  const [error, setError] = useState<string>()
+  const [isPending, startTransition] = useTransition()
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const formData = new FormData(e.currentTarget)
+    startTransition(async () => {
+      const result = await login(undefined, formData)
+      if (result?.error) setError(result.error)
+    })
+  }
 
   return (
     <AuthCard title="ログイン" description="メールアドレスとパスワードを入力してください">
-      <form action={action} className="space-y-4">
+      <form onSubmit={handleSubmit} className="space-y-4">
         <FormField
           label="メールアドレス"
           name="email"
@@ -29,9 +39,9 @@ export default function LoginPage() {
           autoComplete="current-password"
         />
 
-        <ErrorMessage message={state?.error} />
+        <ErrorMessage message={error} />
 
-        <SubmitButton label="ログイン" loadingLabel="ログイン中..." />
+        <SubmitButton label="ログイン" loadingLabel="ログイン中..." isPending={isPending} />
       </form>
 
       <div className="mt-6 space-y-2 text-center text-sm">
