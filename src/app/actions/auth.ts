@@ -10,15 +10,24 @@ type AuthState = { error: string } | undefined
 export async function login(_prev: AuthState, formData: FormData): Promise<AuthState> {
   const supabase = await createClient()
 
-  const { error } = await supabase.auth.signInWithPassword({
-    email: formData.get('email') as string,
-    password: formData.get('password') as string,
-  })
+  // --- DEBUG START ---
+  const allEntries: Record<string, string> = {}
+  formData.forEach((value, key) => { allEntries[key] = String(value) })
+  console.log('[login] formData entries:', JSON.stringify(allEntries))
+  // --- DEBUG END ---
+
+  const email = formData.get('email') as string
+  const password = formData.get('password') as string
+  console.log('[login] email:', email, '| password length:', password?.length ?? 0)
+
+  const { error } = await supabase.auth.signInWithPassword({ email, password })
 
   if (error) {
+    console.log('[login] Supabase error:', error.message, '| status:', error.status)
     return { error: 'メールアドレスまたはパスワードが正しくありません' }
   }
 
+  console.log('[login] success → redirecting to /properties')
   redirect('/properties')
 }
 

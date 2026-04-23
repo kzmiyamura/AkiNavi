@@ -15,8 +15,13 @@ export default function LoginPage() {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
+    const debugEntries: Record<string, string> = {}
+    formData.forEach((value, key) => { debugEntries[key] = key === 'password' ? '***' : String(value) })
+    console.log('[login client] formData:', JSON.stringify(debugEntries))
     startTransition(async () => {
+      console.log('[login client] calling server action...')
       const result = await login(undefined, formData)
+      console.log('[login client] result:', JSON.stringify(result))
       if (result?.error) setError(result.error)
     })
   }
