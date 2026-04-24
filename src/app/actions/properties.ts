@@ -104,6 +104,95 @@ export async function saveProperty(
   redirect('/admin/properties')
 }
 
+export type CsvImportState = { error?: string; imported?: number } | undefined
+
+export async function importCsv(
+  _prev: CsvImportState,
+  formData: FormData
+): Promise<CsvImportState> {
+  await getAdminProfile()
+  const supabase = await createClient()
+
+  const csvText = (formData.get('csv') as string).trim()
+  if (!csvText) return { error: 'CSVデータが空です' }
+
+  const lines = csvText.split('\n').map((l) => l.trim()).filter(Boolean)
+  const header = lines[0].split(',').map((h) => h.trim())
+
+  const required = ['property_name', 'address', 'room_number', 'rent', 'common_fee', 'status']
+  for (const col of required) {
+    if (!header.includes(col)) return { error: `ヘッダーに "${col}" が見つかりません` }
+  }
+
+  const idx = (col: string) => header.indexOf(col)
+
+  // 物件名+住所でグループ化
+  const propertyMap = new Map<string, { name: string; address: string; rooms: RoomInput[] }>()
+  for (let i = 1; i < lines.length; i++) {
+    const cols = lines[i].split(',').map((c) => c.trim())
+    const name = cols[idx('property_name')]
+    const address = cols[idx('address')]
+    const key = `${name}||${address}`
+    if (!propertyMap.has(key)) propertyMap.set(key, { name, address, rooms: [] })
+    propertyMap.get(key)!.rooms.push({
+      room_number: cols[idx('room_number')],
+      rent: parseInt(cols[idx('rent')], 10),
+      common_fee: parseInt(cols[idx('common_fee')], 10),
+      status: cols[idx('status')] as RoomInput['status'],
+    })
+  }
+
+  let importedCount = 0
+  for (const { name, address, rooms } of propertyMap.values()) {
+    // 同名物件が既存ならそのID、なければ新規作成
+    const { data: existing } = await supabase
+      .from('properties')
+      .select('id')
+      .eq('name', name)
+      .eq('address', address)
+      .maybeSingle()
+
+    let pid: string
+    if (existing) {
+      pid = existing.id
+    } else {
+      const { data, error } = await supabase
+        .from('properties')
+        .insert({ name, address })
+        .select('id')
+        .single()
+      if (error || !data) return { error: `物件「${name}」の登録に失敗しました` }
+      pid = data.id
+    }
+
+    // 部屋を upsert（room_number + property_id が同じなら上書き）
+    const { data: existingRooms } = await supabase
+      .from('rooms')
+      .select('id, room_number')
+      .eq('property_id', pid)
+
+    const toUpsert = rooms.map((r) => {
+      const found = existingRooms?.find((e) => e.room_number === r.room_number)
+      return {
+        ...(found ? { id: found.id } : {}),
+        property_id: pid,
+        room_number: r.room_number,
+        rent: r.rent,
+        common_fee: r.common_fee,
+        status: r.status,
+        updated_at: new Date().toISOString(),
+      }
+    })
+
+    const { error: roomError } = await supabase.from('rooms').upsert(toUpsert)
+    if (roomError) return { error: `物件「${name}」の部屋登録に失敗しました` }
+    importedCount += rooms.length
+  }
+
+  revalidatePath('/admin/properties')
+  return { imported: importedCount }
+}
+
 export async function deleteProperty(formData: FormData): Promise<void> {
   await getAdminProfile()
   const supabase = await createClient()
