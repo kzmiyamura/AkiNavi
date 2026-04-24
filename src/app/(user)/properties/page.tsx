@@ -1,9 +1,9 @@
 import { Suspense } from 'react'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { PropertyList } from '@/components/user/PropertyList'
 
 async function PropertiesData() {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const { data } = await supabase
     .from('properties')

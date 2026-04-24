@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { ImageSlider } from '@/components/user/ImageSlider'
 import { formatRent } from '@/utils/format'
 
@@ -8,7 +8,7 @@ const CONTACT_PHONE = process.env.NEXT_PUBLIC_CONTACT_PHONE ?? ''
 const CONTACT_EMAIL = process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? ''
 
 async function getProperty(id: string) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const { data } = await supabase
     .from('properties')
