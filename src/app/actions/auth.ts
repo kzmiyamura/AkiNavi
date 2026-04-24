@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { redirect } from 'next/navigation'
 import { resend, EMAIL_FROM } from '@/lib/resend'
 import { adminApprovalRequestEmail } from '@/lib/email/templates'
@@ -52,8 +53,9 @@ export async function signUp(_prev: AuthState, formData: FormData): Promise<Auth
     return { error: 'ユーザー作成に失敗しました' }
   }
 
-  // profiles テーブルへ登録
-  const { error: profileError } = await supabase.from('profiles').upsert({
+  // profiles テーブルへ登録（RLS バイパスのため admin client を使用）
+  const adminSupabase = createAdminClient()
+  const { error: profileError } = await adminSupabase.from('profiles').upsert({
     id: data.user.id,
     email,
     full_name: fullName,
@@ -81,7 +83,7 @@ async function sendAdminNotification({
   companyName: string
   email: string
 }) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   // 管理者のメールアドレスを全件取得
   const { data: admins } = await supabase
