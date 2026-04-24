@@ -1,6 +1,7 @@
 'use server'
 
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { getAdminProfile } from '@/utils/auth'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
@@ -20,7 +21,7 @@ export async function saveProperty(
   formData: FormData
 ): Promise<PropertyState> {
   await getAdminProfile()
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const propertyId = formData.get('property_id') as string | null
   const name = (formData.get('name') as string).trim()
@@ -142,10 +143,11 @@ export async function importCsv(
     })
   }
 
+  const adminSupabase = createAdminClient()
   let importedCount = 0
   for (const { name, address, rooms } of propertyMap.values()) {
     // 同名物件が既存ならそのID、なければ新規作成
-    const { data: existing } = await supabase
+    const { data: existing } = await adminSupabase
       .from('properties')
       .select('id')
       .eq('name', name)
@@ -156,7 +158,7 @@ export async function importCsv(
     if (existing) {
       pid = existing.id
     } else {
-      const { data, error } = await supabase
+      const { data, error } = await adminSupabase
         .from('properties')
         .insert({ name, address })
         .select('id')
@@ -166,7 +168,7 @@ export async function importCsv(
     }
 
     // 部屋を upsert（room_number + property_id が同じなら上書き）
-    const { data: existingRooms } = await supabase
+    const { data: existingRooms } = await adminSupabase
       .from('rooms')
       .select('id, room_number')
       .eq('property_id', pid)
@@ -184,7 +186,7 @@ export async function importCsv(
       }
     })
 
-    const { error: roomError } = await supabase.from('rooms').upsert(toUpsert)
+    const { error: roomError } = await adminSupabase.from('rooms').upsert(toUpsert)
     if (roomError) return { error: `物件「${name}」の部屋登録に失敗しました` }
     importedCount += rooms.length
   }
@@ -195,7 +197,7 @@ export async function importCsv(
 
 export async function deleteProperty(formData: FormData): Promise<void> {
   await getAdminProfile()
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const propertyId = formData.get('property_id') as string
 
