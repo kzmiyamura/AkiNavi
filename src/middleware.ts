@@ -1,4 +1,5 @@
 import { createServerClient } from '@supabase/ssr'
+import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
@@ -31,7 +32,6 @@ export async function middleware(request: NextRequest) {
 
   // 公開ルート（未ログインでもアクセス可）
   if (PUBLIC_ROUTES.some((r) => pathname.startsWith(r))) {
-    // ログイン済みなら物件一覧へ
     if (user) {
       return NextResponse.redirect(new URL('/properties', request.url))
     }
@@ -43,13 +43,18 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/login', request.url))
   }
 
-  // プロフィール取得（is_approved / role）
-  const { data: profile, error: profileError } = await supabase
+  // プロフィール取得（RLS バイパスのため service role を使用）
+  const adminSupabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { autoRefreshToken: false, persistSession: false } }
+  )
+
+  const { data: profile } = await adminSupabase
     .from('profiles')
     .select('is_approved, role')
     .eq('id', user.id)
     .single()
-  console.log('[middleware] user.id:', user.id, '| profile:', JSON.stringify(profile), '| error:', profileError?.message)
 
   // /pending は未承認ユーザー専用
   if (pathname === '/pending') {
