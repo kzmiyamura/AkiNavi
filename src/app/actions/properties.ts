@@ -1,6 +1,5 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getAdminProfile } from '@/utils/auth'
 import { revalidatePath } from 'next/cache'
@@ -112,7 +111,6 @@ export async function importCsv(
   formData: FormData
 ): Promise<CsvImportState> {
   await getAdminProfile()
-  const supabase = await createClient()
 
   const csvText = (formData.get('csv') as string).trim()
   if (!csvText) return { error: 'CSVデータが空です' }

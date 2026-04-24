@@ -1,12 +1,12 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { PropertyForm } from '@/components/admin/PropertyForm'
 import { deleteProperty } from '@/app/actions/properties'
 import type { RoomInput } from '@/app/actions/properties'
 
 async function getProperty(id: string) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const { data: property } = await supabase
     .from('properties')

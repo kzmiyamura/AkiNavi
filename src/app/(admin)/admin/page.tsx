@@ -1,7 +1,7 @@
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 async function getStats() {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const [
     { count: pendingUsers },

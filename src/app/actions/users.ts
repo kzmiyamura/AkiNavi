@@ -1,6 +1,5 @@
 'use server'
 
-import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getAdminProfile } from '@/utils/auth'
 import { revalidatePath } from 'next/cache'
@@ -14,7 +13,7 @@ export async function approveUser(
   formData: FormData
 ): Promise<UserActionState> {
   await getAdminProfile()
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const userId = formData.get('user_id') as string
   const adminNotes = (formData.get('admin_notes') as string).trim()
@@ -57,8 +56,8 @@ export async function rejectUser(
   formData: FormData
 ): Promise<UserActionState> {
   await getAdminProfile()
-  const supabase = await createClient()
-  const adminClient = createAdminClient()
+  const supabase = createAdminClient()
+  const adminClient = supabase
 
   const userId = formData.get('user_id') as string
 
@@ -92,7 +91,7 @@ export async function updateAdminNotes(
   formData: FormData
 ): Promise<UserActionState> {
   await getAdminProfile()
-  const supabase = await createClient()
+  const supabase = createAdminClient()
 
   const userId = formData.get('user_id') as string
   const adminNotes = (formData.get('admin_notes') as string).trim()
