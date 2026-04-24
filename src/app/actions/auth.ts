@@ -53,8 +53,12 @@ export async function signUp(_prev: AuthState, formData: FormData): Promise<Auth
     return { error: 'ユーザー作成に失敗しました' }
   }
 
-  // profiles テーブルへ登録（RLS バイパスのため admin client を使用）
   const adminSupabase = createAdminClient()
+
+  // メール確認をスキップ（管理者承認フローで代替するため）
+  await adminSupabase.auth.admin.updateUserById(data.user.id, { email_confirm: true })
+
+  // profiles テーブルへ登録（RLS バイパスのため admin client を使用）
   const { error: profileError } = await adminSupabase.from('profiles').upsert({
     id: data.user.id,
     email,
