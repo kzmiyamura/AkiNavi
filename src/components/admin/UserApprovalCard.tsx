@@ -1,7 +1,7 @@
 'use client'
 
-import { useActionState } from 'react'
-import { approveUser, rejectUser, type UserActionState } from '@/app/actions/users'
+import { useState, useTransition } from 'react'
+import { approveUser, rejectUser } from '@/app/actions/users'
 
 type User = {
   id: string
@@ -14,8 +14,8 @@ type User = {
 }
 
 export function UserApprovalCard({ user }: { user: User }) {
-  const [approveState, approveAction] = useActionState(approveUser, undefined)
-  const [rejectState, rejectAction] = useActionState(rejectUser, undefined)
+  const [result, setResult] = useState<{ error?: string; success?: string }>()
+  const [isPending, startTransition] = useTransition()
 
   const registeredAt = new Date(user.created_at).toLocaleDateString('ja-JP', {
     year: 'numeric',
@@ -23,23 +23,39 @@ export function UserApprovalCard({ user }: { user: User }) {
     day: 'numeric',
   })
 
-  if (approveState?.success || rejectState?.success) {
+  const handleApprove = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    const formData = new FormData(e.currentTarget)
+    startTransition(async () => {
+      const res = await approveUser(undefined, formData)
+      if (res) setResult(res)
+    })
+  }
+
+  const handleReject = () => {
+    if (!confirm('このユーザーを拒否しますか？この操作は取り消せません。')) return
+    const fd = new FormData()
+    fd.append('user_id', user.id)
+    startTransition(async () => {
+      const res = await rejectUser(undefined, fd)
+      if (res) setResult(res)
+    })
+  }
+
+  if (result?.success) {
     return (
       <div className="bg-white rounded-2xl border border-slate-200 p-5">
         <div className="flex items-center gap-2 text-sm">
-          {approveState?.success ? (
-            <span className="text-green-600 font-medium">✓ {approveState.success}</span>
-          ) : (
-            <span className="text-red-500 font-medium">✕ {rejectState?.success}</span>
-          )}
+          <span className={result.success.includes('承認') ? 'text-green-600 font-medium' : 'text-red-500 font-medium'}>
+            {result.success.includes('承認') ? '✓' : '✕'} {result.success}
+          </span>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-      {/* ユーザー情報 */}
+    <div className={`bg-white rounded-2xl border border-slate-200 overflow-hidden transition-opacity ${isPending ? 'opacity-60' : ''}`}>
       <div className="p-5">
         <div className="flex items-start justify-between gap-4 mb-3">
           <div>
@@ -62,11 +78,9 @@ export function UserApprovalCard({ user }: { user: User }) {
           </div>
         </div>
 
-        {/* 管理者メモ（承認・メモフォーム共用） */}
         {!user.is_approved && (
           <div className="mt-4 space-y-3">
-            {/* 承認フォーム */}
-            <form action={approveAction} className="space-y-3">
+            <form onSubmit={handleApprove} className="space-y-3">
               <input type="hidden" name="user_id" value={user.id} />
               <div>
                 <label className="block text-xs font-medium text-slate-500 mb-1">
@@ -82,22 +96,70 @@ export function UserApprovalCard({ user }: { user: User }) {
                 />
               </div>
 
-              {(approveState?.error || rejectState?.error) && (
+              {result?.error && (
                 <p className="text-sm text-red-600 bg-red-50 rounded-lg px-3 py-2">
-                  {approveState?.error ?? rejectState?.error}
+                  {result.error}
                 </p>
               )}
 
-              {/* アクションボタン */}
               <div className="flex gap-2">
-                <ApproveButton />
-                <RejectButton userId={user.id} action={rejectAction} />
+                {/* 承認ボタン */}
+                <button
+                  type="submit"
+                  disabled={isPending}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 px-4
+                    bg-green-600 hover:bg-green-700 disabled:bg-green-400
+                    text-white text-sm font-semibold rounded-lg transition-colors"
+                >
+                  {isPending ? (
+                    <>
+                      <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      </svg>
+                      処理中...
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                      </svg>
+                      承認する
+                    </>
+                  )}
+                </button>
+
+                {/* 拒否ボタン */}
+                <button
+                  type="button"
+                  onClick={handleReject}
+                  disabled={isPending}
+                  className="flex-1 flex items-center justify-center gap-1.5 py-2 px-4
+                    border border-red-300 text-red-600 hover:bg-red-50 disabled:opacity-50
+                    text-sm font-semibold rounded-lg transition-colors"
+                >
+                  {isPending ? (
+                    <>
+                      <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                      </svg>
+                      処理中...
+                    </>
+                  ) : (
+                    <>
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                      </svg>
+                      拒否する
+                    </>
+                  )}
+                </button>
               </div>
             </form>
           </div>
         )}
 
-        {/* 承認済みユーザーのメモ表示 */}
         {user.is_approved && user.admin_notes && (
           <div className="mt-3 px-3 py-2 bg-slate-50 rounded-lg text-xs text-slate-500">
             メモ: {user.admin_notes}
@@ -105,51 +167,5 @@ export function UserApprovalCard({ user }: { user: User }) {
         )}
       </div>
     </div>
-  )
-}
-
-function ApproveButton() {
-  return (
-    <button
-      type="submit"
-      className="flex-1 flex items-center justify-center gap-1.5 py-2 px-4
-        bg-green-600 hover:bg-green-700 text-white text-sm font-semibold
-        rounded-lg transition-colors disabled:opacity-50"
-    >
-      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
-      </svg>
-      承認する
-    </button>
-  )
-}
-
-function RejectButton({
-  userId,
-  action,
-}: {
-  userId: string
-  action: (payload: FormData) => void
-}) {
-  const handleReject = () => {
-    if (!confirm('このユーザーを拒否しますか？この操作は取り消せません。')) return
-    const fd = new FormData()
-    fd.append('user_id', userId)
-    action(fd)
-  }
-
-  return (
-    <button
-      type="button"
-      onClick={handleReject}
-      className="flex-1 flex items-center justify-center gap-1.5 py-2 px-4
-        border border-red-300 text-red-600 hover:bg-red-50 text-sm font-semibold
-        rounded-lg transition-colors"
-    >
-      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
-      </svg>
-      拒否する
-    </button>
   )
 }
