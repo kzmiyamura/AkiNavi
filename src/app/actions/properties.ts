@@ -159,11 +159,11 @@ async function sendPropertyChangeNotification({
   const emails = users.map((u) => u.email)
   console.log('[notify] sending to', emails)
 
-  // BCC で一括送信（受信者同士のアドレスは非表示）
+  // 1通目を to に、残りを bcc に（受信者同士のアドレスは非表示・管理者には送らない）
   const { data: sendData, error: sendError } = await resend.emails.send({
     from: EMAIL_FROM,
-    to: EMAIL_FROM,
-    bcc: emails,
+    to: emails[0],
+    bcc: emails.slice(1),
     subject,
     html,
   })
