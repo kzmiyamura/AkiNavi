@@ -6,7 +6,7 @@ async function getUsers() {
 
   const { data } = await supabase
     .from('profiles')
-    .select('id, email, full_name, company_name, created_at, admin_notes, is_approved')
+    .select('id, email, full_name, company_name, created_at, admin_notes, is_approved, role')
     .eq('role', 'user')
     .order('created_at', { ascending: false })
 

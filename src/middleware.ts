@@ -33,6 +33,19 @@ export async function middleware(request: NextRequest) {
   // 公開ルート（未ログインでもアクセス可）
   if (PUBLIC_ROUTES.some((r) => pathname.startsWith(r))) {
     if (user) {
+      // ログイン済みならロールに応じてリダイレクト
+      const adminSupabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!,
+        { auth: { autoRefreshToken: false, persistSession: false } }
+      )
+      const { data: profile } = await adminSupabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single()
+      if (profile?.role === 'admin') return NextResponse.redirect(new URL('/admin', request.url))
+      if (profile?.role === 'developer') return NextResponse.redirect(new URL('/select-role', request.url))
       return NextResponse.redirect(new URL('/properties', request.url))
     }
     return supabaseResponse
@@ -64,13 +77,22 @@ export async function middleware(request: NextRequest) {
     return supabaseResponse
   }
 
+  // /select-role は developer 専用
+  if (pathname === '/select-role') {
+    if (!profile?.is_approved) return NextResponse.redirect(new URL('/pending', request.url))
+    if (profile?.role !== 'developer') {
+      return NextResponse.redirect(new URL(profile?.role === 'admin' ? '/admin' : '/properties', request.url))
+    }
+    return supabaseResponse
+  }
+
   // 未承認ユーザー → 承認待ち画面へ
   if (!profile?.is_approved) {
     return NextResponse.redirect(new URL('/pending', request.url))
   }
 
-  // /admin は admin ロール専用
-  if (pathname.startsWith('/admin') && profile?.role !== 'admin') {
+  // /admin は admin または developer のみ
+  if (pathname.startsWith('/admin') && profile?.role !== 'admin' && profile?.role !== 'developer') {
     return NextResponse.redirect(new URL('/properties', request.url))
   }
 

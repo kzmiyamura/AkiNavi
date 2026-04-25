@@ -17,6 +17,7 @@ export async function approveUser(
 
   const userId = formData.get('user_id') as string
   const adminNotes = (formData.get('admin_notes') as string).trim()
+  const role = (formData.get('role') as string) === 'developer' ? 'developer' : 'user'
 
   // プロフィールを取得（通知メール用）
   const { data: profile } = await supabase
@@ -29,6 +30,7 @@ export async function approveUser(
     .from('profiles')
     .update({
       is_approved: true,
+      role,
       approval_date: new Date().toISOString(),
       admin_notes: adminNotes || null,
       updated_at: new Date().toISOString(),
@@ -48,7 +50,7 @@ export async function approveUser(
   }
 
   revalidatePath('/admin/users')
-  return { success: 'ユーザーを承認しました' }
+  return { success: role === 'developer' ? '開発者として承認しました' : 'ユーザーを承認しました' }
 }
 
 export async function rejectUser(

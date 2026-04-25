@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useRef, useState, useTransition } from 'react'
 import { approveUser, rejectUser } from '@/app/actions/users'
 
 type User = {
@@ -11,11 +11,13 @@ type User = {
   created_at: string
   admin_notes: string | null
   is_approved: boolean
+  role: string
 }
 
 export function UserApprovalCard({ user }: { user: User }) {
   const [result, setResult] = useState<{ error?: string; success?: string }>()
   const [isPending, startTransition] = useTransition()
+  const formRef = useRef<HTMLFormElement>(null)
 
   const registeredAt = new Date(user.created_at).toLocaleDateString('ja-JP', {
     year: 'numeric',
@@ -26,8 +28,18 @@ export function UserApprovalCard({ user }: { user: User }) {
   const handleApprove = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     const formData = new FormData(e.currentTarget)
+    formData.set('role', 'user')
     startTransition(async () => {
       const res = await approveUser(undefined, formData)
+      if (res) setResult(res)
+    })
+  }
+
+  const handleApproveDeveloper = () => {
+    const fd = new FormData(formRef.current ?? undefined)
+    fd.set('role', 'developer')
+    startTransition(async () => {
+      const res = await approveUser(undefined, fd)
       if (res) setResult(res)
     })
   }
@@ -64,11 +76,13 @@ export function UserApprovalCard({ user }: { user: User }) {
                 {user.full_name ?? '（氏名未設定）'}
               </p>
               <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
-                user.is_approved
-                  ? 'bg-green-100 text-green-700'
-                  : 'bg-amber-100 text-amber-700'
+                !user.is_approved
+                  ? 'bg-amber-100 text-amber-700'
+                  : user.role === 'developer'
+                    ? 'bg-indigo-100 text-indigo-700'
+                    : 'bg-green-100 text-green-700'
               }`}>
-                {user.is_approved ? '承認済み' : '承認待ち'}
+                {!user.is_approved ? '承認待ち' : user.role === 'developer' ? '開発者' : '承認済み'}
               </span>
             </div>
             <p className="text-sm text-slate-500 mt-0.5">{user.company_name}</p>
@@ -80,7 +94,7 @@ export function UserApprovalCard({ user }: { user: User }) {
 
         {!user.is_approved && (
           <div className="mt-4 space-y-3">
-            <form onSubmit={handleApprove} className="space-y-3">
+            <form ref={formRef} onSubmit={handleApprove} className="space-y-3">
               <input type="hidden" name="user_id" value={user.id} />
               <div>
                 <label className="block text-xs font-medium text-slate-500 mb-1">
@@ -102,59 +116,66 @@ export function UserApprovalCard({ user }: { user: User }) {
                 </p>
               )}
 
-              <div className="flex gap-2">
-                {/* 承認ボタン */}
-                <button
-                  type="submit"
-                  disabled={isPending}
-                  className="flex-1 flex items-center justify-center gap-1.5 py-2 px-4
-                    bg-green-600 hover:bg-green-700 disabled:bg-green-400
-                    text-white text-sm font-semibold rounded-lg transition-colors"
-                >
-                  {isPending ? (
-                    <>
+              <div className="flex flex-col gap-2">
+                <div className="flex gap-2">
+                  {/* ユーザーとして承認 */}
+                  <button
+                    type="submit"
+                    disabled={isPending}
+                    className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3
+                      bg-green-600 hover:bg-green-700 disabled:bg-green-400
+                      text-white text-sm font-semibold rounded-lg transition-colors"
+                  >
+                    {isPending ? (
                       <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                       </svg>
-                      処理中...
-                    </>
-                  ) : (
-                    <>
+                    ) : (
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
                       </svg>
-                      承認する
-                    </>
-                  )}
-                </button>
+                    )}
+                    {isPending ? '処理中...' : 'ユーザー承認'}
+                  </button>
 
-                {/* 拒否ボタン */}
-                <button
-                  type="button"
-                  onClick={handleReject}
-                  disabled={isPending}
-                  className="flex-1 flex items-center justify-center gap-1.5 py-2 px-4
-                    border border-red-300 text-red-600 hover:bg-red-50 disabled:opacity-50
-                    text-sm font-semibold rounded-lg transition-colors"
-                >
-                  {isPending ? (
-                    <>
+                  {/* 開発者として承認 */}
+                  <button
+                    type="button"
+                    onClick={handleApproveDeveloper}
+                    disabled={isPending}
+                    className="flex-1 flex items-center justify-center gap-1.5 py-2 px-3
+                      bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-400
+                      text-white text-sm font-semibold rounded-lg transition-colors"
+                  >
+                    {isPending ? (
                       <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                       </svg>
-                      処理中...
-                    </>
-                  ) : (
-                    <>
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                    ) : (
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M17.25 6.75 22.5 12l-5.25 5.25m-10.5 0L1.5 12l5.25-5.25m7.5-3-4.5 16.5" />
                       </svg>
-                      拒否する
-                    </>
-                  )}
-                </button>
+                    )}
+                    {isPending ? '処理中...' : '開発者承認'}
+                  </button>
+
+                  {/* 拒否ボタン */}
+                  <button
+                    type="button"
+                    onClick={handleReject}
+                    disabled={isPending}
+                    className="flex items-center justify-center gap-1.5 py-2 px-3
+                      border border-red-300 text-red-600 hover:bg-red-50 disabled:opacity-50
+                      text-sm font-semibold rounded-lg transition-colors"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2.5} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+                    </svg>
+                    拒否
+                  </button>
+                </div>
               </div>
             </form>
           </div>

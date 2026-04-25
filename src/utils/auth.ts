@@ -8,7 +8,7 @@ export type Profile = {
   full_name: string | null
   company_name: string | null
   phone_number: string | null
-  role: 'admin' | 'user'
+  role: 'admin' | 'developer' | 'user'
   is_approved: boolean
   created_at: string
   approval_date: string | null
@@ -36,9 +36,9 @@ export async function getCurrentProfile(): Promise<Profile> {
   return profile as Profile
 }
 
-/** 管理者プロフィールを取得する。admin でなければ /properties へリダイレクト。 */
+/** 管理者/開発者プロフィールを取得する。該当ロール以外は /properties へリダイレクト。 */
 export async function getAdminProfile(): Promise<Profile> {
   const profile = await getCurrentProfile()
-  if (profile.role !== 'admin') redirect('/properties')
+  if (profile.role !== 'admin' && profile.role !== 'developer') redirect('/properties')
   return profile
 }

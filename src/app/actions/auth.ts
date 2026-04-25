@@ -36,7 +36,9 @@ export async function login(_prev: AuthState, formData: FormData): Promise<AuthS
     .eq('id', signInData.user.id)
     .single()
 
-  redirect(profile?.role === 'admin' ? '/admin' : '/properties')
+  if (profile?.role === 'admin') redirect('/admin')
+  if (profile?.role === 'developer') redirect('/select-role')
+  redirect('/properties')
 }
 
 export async function signUp(_prev: AuthState, formData: FormData): Promise<AuthState> {
