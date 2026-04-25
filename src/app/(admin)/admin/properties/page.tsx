@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import { createAdminClient } from '@/lib/supabase/admin'
 
 async function getProperties() {
@@ -6,10 +7,16 @@ async function getProperties() {
 
   const { data } = await supabase
     .from('properties')
-    .select('id, name, address, created_at, rooms(id, status)')
+    .select('id, name, address, created_at, image_paths, rooms(id, status)')
     .order('created_at', { ascending: false })
 
-  return data ?? []
+  return (data ?? []).map((p) => {
+    const paths = (p.image_paths as string[] | null) ?? []
+    const thumbUrl = paths.length > 0
+      ? supabase.storage.from('property-images').getPublicUrl(paths[0]).data.publicUrl
+      : null
+    return { ...p, thumbUrl }
+  })
 }
 
 export default async function AdminPropertiesPage() {
@@ -70,15 +77,36 @@ export default async function AdminPropertiesPage() {
             return (
               <div
                 key={property.id}
-                className="bg-white rounded-2xl border border-slate-200 p-5 flex flex-col sm:flex-row sm:items-center gap-4"
+                className="bg-white rounded-2xl border border-slate-200 p-4 flex items-center gap-4"
               >
+                {/* サムネイル */}
+                {property.thumbUrl ? (
+                  <div className="relative shrink-0 w-16 h-16 rounded-xl overflow-hidden bg-slate-100">
+                    <Image
+                      src={property.thumbUrl}
+                      alt={property.name}
+                      fill
+                      className="object-cover"
+                      sizes="64px"
+                    />
+                  </div>
+                ) : (
+                  <div className="shrink-0 w-16 h-16 rounded-xl bg-slate-100 flex items-center justify-center">
+                    <svg className="w-7 h-7 text-slate-300" fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Z" />
+                    </svg>
+                  </div>
+                )}
+
+                {/* テキスト */}
                 <div className="flex-1 min-w-0">
                   <p className="font-semibold text-slate-800 truncate">{property.name}</p>
-                  <p className="text-sm text-slate-500 mt-0.5">{property.address}</p>
+                  <p className="text-sm text-slate-500 mt-0.5 truncate">{property.address}</p>
                   <p className="text-xs text-slate-400 mt-1">
                     空室 {vacantCount} / {totalCount} 部屋
                   </p>
                 </div>
+
                 <Link
                   href={`/admin/properties/${property.id}/edit`}
                   className="shrink-0 px-4 py-2 text-sm font-medium border border-slate-300 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors"
