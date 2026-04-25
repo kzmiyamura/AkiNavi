@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { ImageSlider } from '@/components/user/ImageSlider'
+import { ViewLogger } from '@/components/user/ViewLogger'
 import { formatRent } from '@/utils/format'
 
 const CONTACT_PHONE = process.env.NEXT_PUBLIC_CONTACT_PHONE ?? ''
@@ -39,6 +40,7 @@ export default async function PropertyDetailPage({
 
   return (
     <div className="max-w-2xl mx-auto">
+      <ViewLogger roomIds={rooms.map((r) => r.id!)} />
       {/* パンくず */}
       <nav className="flex items-center gap-2 text-sm text-slate-400 mb-4">
         <Link href="/properties" className="hover:text-slate-600 transition-colors">

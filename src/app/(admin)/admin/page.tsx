@@ -1,7 +1,10 @@
 import { createAdminClient } from '@/lib/supabase/admin'
+import { ViewTrendChart, PropertyRankingChart } from '@/components/admin/DashboardCharts'
 
 async function getStats() {
   const supabase = createAdminClient()
+
+  const todayJst = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().split('T')[0]
 
   const [
     { count: pendingUsers },
@@ -20,7 +23,7 @@ async function getStats() {
     supabase
       .from('view_logs')
       .select('*', { count: 'exact', head: true })
-      .gte('viewed_at', new Date().toISOString().split('T')[0]),
+      .gte('viewed_at', `${todayJst}T00:00:00+09:00`),
   ])
 
   return {
@@ -30,8 +33,59 @@ async function getStats() {
   }
 }
 
+async function getChartData() {
+  const supabase = createAdminClient()
+
+  // 過去14日分の日別閲覧数
+  const since = new Date(Date.now() - 13 * 24 * 60 * 60 * 1000).toISOString()
+  const { data: logs } = await supabase
+    .from('view_logs')
+    .select('viewed_at')
+    .gte('viewed_at', since)
+    .order('viewed_at')
+
+  // 日別に集計
+  const countByDate: Record<string, number> = {}
+  for (let i = 13; i >= 0; i--) {
+    const d = new Date(Date.now() - i * 24 * 60 * 60 * 1000)
+    const key = `${d.getMonth() + 1}/${d.getDate()}`
+    countByDate[key] = 0
+  }
+  for (const log of logs ?? []) {
+    const d = new Date(log.viewed_at)
+    const key = `${d.getMonth() + 1}/${d.getDate()}`
+    if (key in countByDate) countByDate[key]++
+  }
+  const trendData = Object.entries(countByDate).map(([date, count]) => ({ date, count }))
+
+  // 物件別閲覧ランキング（上位5件）
+  const { data: rankLogs } = await supabase
+    .from('view_logs')
+    .select('room_id, rooms(property_id, properties(name))')
+    .gte('viewed_at', since)
+
+  const propertyCount: Record<string, { name: string; count: number }> = {}
+  for (const log of rankLogs ?? []) {
+    const room = (log.rooms as unknown) as { property_id: string; properties: { name: string } | null } | null
+    const propertyId = room?.property_id
+    const name = room?.properties?.name
+    if (!propertyId || !name) continue
+    if (!propertyCount[propertyId]) propertyCount[propertyId] = { name, count: 0 }
+    propertyCount[propertyId].count++
+  }
+  const rankingData = Object.values(propertyCount)
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 5)
+    .map(({ name, count }) => ({ name, count }))
+
+  return { trendData, rankingData }
+}
+
 export default async function AdminDashboardPage() {
-  const stats = await getStats()
+  const [stats, { trendData, rankingData }] = await Promise.all([
+    getStats(),
+    getChartData(),
+  ])
 
   return (
     <div>
@@ -60,19 +114,15 @@ export default async function AdminDashboardPage() {
         />
       </div>
 
-      {/* グラフエリア（Day 22-23 で Recharts 実装予定） */}
+      {/* グラフ */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-2xl border border-slate-200 p-6">
-          <h2 className="text-base font-semibold text-slate-700 mb-4">日別閲覧数推移</h2>
-          <div className="flex items-center justify-center h-48 text-slate-400 text-sm">
-            グラフは Day 22-23 で実装予定
-          </div>
+          <h2 className="text-base font-semibold text-slate-700 mb-4">日別閲覧数推移（過去14日）</h2>
+          <ViewTrendChart data={trendData} />
         </div>
         <div className="bg-white rounded-2xl border border-slate-200 p-6">
-          <h2 className="text-base font-semibold text-slate-700 mb-4">人気物件ランキング</h2>
-          <div className="flex items-center justify-center h-48 text-slate-400 text-sm">
-            グラフは Day 22-23 で実装予定
-          </div>
+          <h2 className="text-base font-semibold text-slate-700 mb-4">人気物件ランキング（過去14日）</h2>
+          <PropertyRankingChart data={rankingData} />
         </div>
       </div>
     </div>
