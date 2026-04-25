@@ -15,7 +15,7 @@ export function GlobalLoginToggle({ enabled }: { enabled: boolean }) {
 
     const fd = new FormData()
     fd.set('enabled', String(next))
-    startTransition(() => toggleAllUsersLogin(undefined, fd))
+    startTransition(async () => { await toggleAllUsersLogin(undefined, fd) })
   }
 
   return (
