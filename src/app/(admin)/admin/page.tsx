@@ -5,11 +5,13 @@ async function getStats() {
   const supabase = createAdminClient()
 
   const todayJst = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().split('T')[0]
+  const todayFilter = `${todayJst}T00:00:00+09:00`
+  console.log('[dashboard] todayJst:', todayJst, '| filter:', todayFilter)
 
   const [
     { count: pendingUsers },
     { count: vacantRooms },
-    { count: todayViews },
+    { count: todayViews, error: viewError },
   ] = await Promise.all([
     supabase
       .from('profiles')
@@ -23,8 +25,18 @@ async function getStats() {
     supabase
       .from('view_logs')
       .select('*', { count: 'exact', head: true })
-      .gte('viewed_at', `${todayJst}T00:00:00+09:00`),
+      .gte('viewed_at', todayFilter),
   ])
+
+  console.log('[dashboard] todayViews:', todayViews, '| error:', viewError?.message)
+
+  // view_logs の最新5件を確認
+  const { data: recentLogs } = await supabase
+    .from('view_logs')
+    .select('id, viewed_at, user_id, room_id')
+    .order('viewed_at', { ascending: false })
+    .limit(5)
+  console.log('[dashboard] recent view_logs:', JSON.stringify(recentLogs))
 
   return {
     pendingUsers: pendingUsers ?? 0,
