@@ -65,7 +65,7 @@ export async function middleware(request: NextRequest) {
 
   const { data: profile } = await adminSupabase
     .from('profiles')
-    .select('is_approved, role')
+    .select('is_approved, is_active, role')
     .eq('id', user.id)
     .single()
 
@@ -73,6 +73,22 @@ export async function middleware(request: NextRequest) {
   if (pathname === '/pending') {
     if (profile?.is_approved) {
       return NextResponse.redirect(new URL('/properties', request.url))
+    }
+    return supabaseResponse
+  }
+
+  // /suspended は停止中ユーザー専用
+  if (pathname === '/suspended') {
+    // admin/developer は停止対象外 → リダイレクト
+    if (profile?.role === 'admin') return NextResponse.redirect(new URL('/admin', request.url))
+    if (profile?.role === 'developer') return NextResponse.redirect(new URL('/select-role', request.url))
+    // 停止状態でなければリダイレクト（グローバルも確認）
+    if (profile?.is_active !== false) {
+      const { data: settings } = await adminSupabase
+        .from('system_settings').select('users_login_enabled').eq('id', 1).single()
+      if (settings?.users_login_enabled !== false) {
+        return NextResponse.redirect(new URL('/properties', request.url))
+      }
     }
     return supabaseResponse
   }
@@ -89,6 +105,18 @@ export async function middleware(request: NextRequest) {
   // 未承認ユーザー → 承認待ち画面へ
   if (!profile?.is_approved) {
     return NextResponse.redirect(new URL('/pending', request.url))
+  }
+
+  // 一般ユーザーの停止チェック（admin/developer は対象外）
+  if (profile?.role === 'user') {
+    if (profile.is_active === false) {
+      return NextResponse.redirect(new URL('/suspended', request.url))
+    }
+    const { data: settings } = await adminSupabase
+      .from('system_settings').select('users_login_enabled').eq('id', 1).single()
+    if (settings?.users_login_enabled === false) {
+      return NextResponse.redirect(new URL('/suspended', request.url))
+    }
   }
 
   // /admin は admin または developer のみ

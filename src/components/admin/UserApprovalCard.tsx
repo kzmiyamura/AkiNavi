@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useState, useTransition } from 'react'
-import { approveUser, rejectUser } from '@/app/actions/users'
+import { approveUser, rejectUser, toggleUserActive } from '@/app/actions/users'
 
 type User = {
   id: string
@@ -11,6 +11,7 @@ type User = {
   created_at: string
   admin_notes: string | null
   is_approved: boolean
+  is_active: boolean
   role: string
 }
 
@@ -46,6 +47,18 @@ export function UserApprovalCard({ user, isReadOnly = false }: { user: User; isR
     })
   }
 
+  const handleToggleActive = () => {
+    const next = !user.is_active
+    if (!confirm(next ? 'このユーザーのログインを再開しますか？' : 'このユーザーのログインを停止しますか？')) return
+    const fd = new FormData()
+    fd.set('user_id', user.id)
+    fd.set('is_active', String(next))
+    startTransition(async () => {
+      const res = await toggleUserActive(undefined, fd)
+      if (res) setResult(res)
+    })
+  }
+
   const handleReject = () => {
     if (!confirm('このユーザーを拒否しますか？この操作は取り消せません。')) return
     const fd = new FormData()
@@ -72,7 +85,7 @@ export function UserApprovalCard({ user, isReadOnly = false }: { user: User; isR
     <div className={`bg-white rounded-2xl border border-slate-200 overflow-hidden transition-opacity ${isPending ? 'opacity-60' : ''}`}>
       <div className="p-5">
         <div className="flex items-start justify-between gap-4 mb-3">
-          <div>
+          <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2">
               <p className="font-semibold text-slate-800">
                 {isReadOnly ? MASK : (user.full_name ?? '（氏名未設定）')}
@@ -86,12 +99,46 @@ export function UserApprovalCard({ user, isReadOnly = false }: { user: User; isR
               }`}>
                 {!user.is_approved ? '承認待ち' : user.role === 'developer' ? '開発者' : '承認済み'}
               </span>
+              {user.is_approved && !user.is_active && (
+                <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-red-100 text-red-600">
+                  停止中
+                </span>
+              )}
             </div>
             <p className="text-sm text-slate-500 mt-0.5">{isReadOnly ? MASK : user.company_name}</p>
             <p className="text-xs text-slate-400 mt-1">
               {isReadOnly ? MASK : user.email} · 登録日: {registeredAt}
             </p>
           </div>
+          {/* 個別停止ボタン（承認済みかつ管理者のみ） */}
+          {user.is_approved && !isReadOnly && (
+            <button
+              type="button"
+              onClick={handleToggleActive}
+              disabled={isPending}
+              className={`shrink-0 flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border transition-colors disabled:opacity-50 ${
+                user.is_active
+                  ? 'border-red-200 text-red-600 hover:bg-red-50'
+                  : 'border-green-200 text-green-600 hover:bg-green-50'
+              }`}
+            >
+              {user.is_active ? (
+                <>
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 0 0 5.636 5.636m12.728 12.728A9 9 0 0 1 5.636 5.636m12.728 12.728L5.636 5.636" />
+                  </svg>
+                  停止
+                </>
+              ) : (
+                <>
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
+                  </svg>
+                  再開
+                </>
+              )}
+            </button>
+          )}
         </div>
 
         {!user.is_approved && !isReadOnly && (

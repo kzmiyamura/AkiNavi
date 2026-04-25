@@ -1,21 +1,36 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getAdminProfile } from '@/utils/auth'
 import { UserApprovalCard } from '@/components/admin/UserApprovalCard'
+import { GlobalLoginToggle } from '@/components/admin/GlobalLoginToggle'
 
 async function getUsers() {
   const supabase = createAdminClient()
 
   const { data } = await supabase
     .from('profiles')
-    .select('id, email, full_name, company_name, created_at, admin_notes, is_approved, role')
+    .select('id, email, full_name, company_name, created_at, admin_notes, is_approved, is_active, role')
     .eq('role', 'user')
     .order('created_at', { ascending: false })
 
   return data ?? []
 }
 
+async function getGlobalLoginEnabled(): Promise<boolean> {
+  const supabase = createAdminClient()
+  const { data } = await supabase
+    .from('system_settings')
+    .select('users_login_enabled')
+    .eq('id', 1)
+    .single()
+  return data?.users_login_enabled ?? true
+}
+
 export default async function AdminUsersPage() {
-  const [users, viewer] = await Promise.all([getUsers(), getAdminProfile()])
+  const [users, viewer, usersLoginEnabled] = await Promise.all([
+    getUsers(),
+    getAdminProfile(),
+    getGlobalLoginEnabled(),
+  ])
   const isReadOnly = viewer.role === 'developer'
   const pending = users.filter((u) => !u.is_approved)
   const approved = users.filter((u) => u.is_approved)
@@ -41,6 +56,13 @@ export default async function AdminUsersPage() {
           CSVエクスポート
         </a>
       </div>
+
+      {/* 全体ログイン制御（管理者のみ） */}
+      {!isReadOnly && (
+        <div className="mb-6">
+          <GlobalLoginToggle enabled={usersLoginEnabled} />
+        </div>
+      )}
 
       {/* 承認待ちセクション */}
       <section className="mb-8">

@@ -10,6 +10,7 @@ export type Profile = {
   phone_number: string | null
   role: 'admin' | 'developer' | 'user'
   is_approved: boolean
+  is_active: boolean
   created_at: string
   approval_date: string | null
   admin_notes: string | null

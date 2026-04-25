@@ -88,6 +88,49 @@ export async function rejectUser(
   return { success: 'ユーザーを拒否しました' }
 }
 
+export async function toggleUserActive(
+  _prev: UserActionState,
+  formData: FormData
+): Promise<UserActionState> {
+  const profile = await getAdminProfile()
+  if (profile.role !== 'admin') return { error: '管理者のみ実行できます' }
+  const supabase = createAdminClient()
+
+  const userId = formData.get('user_id') as string
+  const isActive = formData.get('is_active') === 'true'
+
+  const { error } = await supabase
+    .from('profiles')
+    .update({ is_active: isActive, updated_at: new Date().toISOString() })
+    .eq('id', userId)
+
+  if (error) return { error: '更新に失敗しました' }
+
+  revalidatePath('/admin/users')
+  return { success: isActive ? 'ログインを再開しました' : 'ログインを停止しました' }
+}
+
+export async function toggleAllUsersLogin(
+  _prev: UserActionState,
+  formData: FormData
+): Promise<UserActionState> {
+  const profile = await getAdminProfile()
+  if (profile.role !== 'admin') return { error: '管理者のみ実行できます' }
+  const supabase = createAdminClient()
+
+  const enabled = formData.get('enabled') === 'true'
+
+  const { error } = await supabase
+    .from('system_settings')
+    .update({ users_login_enabled: enabled, updated_at: new Date().toISOString() })
+    .eq('id', 1)
+
+  if (error) return { error: '設定の更新に失敗しました' }
+
+  revalidatePath('/admin/users')
+  return { success: enabled ? '全ユーザーのログインを再開しました' : '全ユーザーのログインを停止しました' }
+}
+
 export async function updateAdminNotes(
   _prev: UserActionState,
   formData: FormData
