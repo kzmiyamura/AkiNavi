@@ -14,6 +14,9 @@ CREATE TABLE IF NOT EXISTS system_settings (
   updated_at timestamptz DEFAULT now()
 );
 
+-- RLS を有効化（service role は RLS をバイパスするため anon/authenticated からのアクセスをブロック）
+ALTER TABLE system_settings ENABLE ROW LEVEL SECURITY;
+
 -- 初期レコードを挿入（存在しない場合のみ）
 INSERT INTO system_settings (id, users_login_enabled)
 VALUES (1, true)
