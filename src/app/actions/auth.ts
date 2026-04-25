@@ -72,6 +72,12 @@ export async function signUp(_prev: AuthState, formData: FormData): Promise<Auth
     return { error: 'プロフィールの作成に失敗しました' }
   }
 
+  // メール確認後にサインインしてセッションを確立
+  const { error: signInError } = await supabase.auth.signInWithPassword({ email, password })
+  if (signInError) {
+    return { error: 'アカウント作成は完了しましたが、自動ログインに失敗しました。ログイン画面からお試しください' }
+  }
+
   // 管理者への承認依頼メール（失敗してもサインアップは成功扱い）
   await sendAdminNotification({ fullName, companyName, email }).catch(console.error)
 
