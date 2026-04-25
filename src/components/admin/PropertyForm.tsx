@@ -82,7 +82,7 @@ export function PropertyForm({ property, initialRooms = [] }: Props) {
             type="text"
             required
             defaultValue={property?.name}
-            placeholder="ホワイトハウス平野"
+            placeholder="〇〇マンション"
             className="w-full px-4 py-2.5 rounded-lg border border-slate-300 text-sm
               focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
@@ -97,7 +97,7 @@ export function PropertyForm({ property, initialRooms = [] }: Props) {
             type="text"
             required
             defaultValue={property?.address}
-            placeholder="大阪市平野区平野本町1-1-1"
+            placeholder="〇〇市〇〇町1-1-1"
             className="w-full px-4 py-2.5 rounded-lg border border-slate-300 text-sm
               focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />

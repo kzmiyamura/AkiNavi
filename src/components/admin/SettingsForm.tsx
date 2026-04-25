@@ -38,7 +38,7 @@ export function SettingsForm({ profile, isReadOnly = false }: { profile: Profile
               type="text"
               readOnly={isReadOnly}
               defaultValue={isReadOnly ? (profile.full_name ? MASK : '') : (profile.full_name ?? '')}
-              placeholder={isReadOnly ? '' : '山田 太郎'}
+              placeholder={isReadOnly ? '' : '〇〇 〇〇'}
               className={inputClass}
             />
           </div>
@@ -62,7 +62,7 @@ export function SettingsForm({ profile, isReadOnly = false }: { profile: Profile
               type="tel"
               readOnly={isReadOnly}
               defaultValue={isReadOnly ? (profile.phone_number ? MASK : '') : (profile.phone_number ?? '')}
-              placeholder={isReadOnly ? '' : '06-1234-5678'}
+              placeholder={isReadOnly ? '' : '000-0000-0000'}
               className={inputClass}
             />
           </div>

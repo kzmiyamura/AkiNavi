@@ -30,13 +30,13 @@ export default function SignUpPage() {
         <FormField
           label="会社名"
           name="company_name"
-          placeholder="株式会社〇〇不動産"
+          placeholder="株式会社〇〇"
           autoComplete="organization"
         />
         <FormField
           label="氏名"
           name="full_name"
-          placeholder="山田 太郎"
+          placeholder="〇〇 〇〇"
           autoComplete="name"
         />
         <FormField

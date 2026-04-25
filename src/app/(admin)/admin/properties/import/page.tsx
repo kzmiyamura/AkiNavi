@@ -6,8 +6,8 @@ import Link from 'next/link'
 import { importCsv } from '@/app/actions/properties'
 
 const EXAMPLE_CSV = `property_name,address,room_number,rent,common_fee,status
-ホワイトハウス平野,大阪市平野区,205,35000,3000,occupied
-ホワイトハウス平野,大阪市平野区,301,38000,3000,vacant`
+〇〇マンション,〇〇市〇〇町1-1,205,35000,3000,occupied
+〇〇マンション,〇〇市〇〇町1-1,301,38000,3000,vacant`
 
 type PreviewRow = {
   property_name: string
