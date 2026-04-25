@@ -29,7 +29,7 @@ function newRow(): RoomInput {
 
 export function PropertyForm({ property, initialRooms = [] }: Props) {
   const router = useRouter()
-  const [state, action] = useActionState(saveProperty, undefined)
+  const [state, action, isPending] = useActionState(saveProperty, undefined)
   const [rows, setRows] = useState<RoomInput[]>(
     initialRooms.length > 0 ? initialRooms : [newRow()]
   )
@@ -42,8 +42,10 @@ export function PropertyForm({ property, initialRooms = [] }: Props) {
 
   const addRow = () => setRows((prev) => [...prev, newRow()])
 
-  const removeRow = (index: number) =>
+  const removeRow = (index: number) => {
+    if (!confirm('この部屋を削除しますか？')) return
     setRows((prev) => prev.filter((_, i) => i !== index))
+  }
 
   const updateRow = <K extends keyof RoomInput>(
     index: number,
@@ -307,6 +309,7 @@ export function PropertyForm({ property, initialRooms = [] }: Props) {
           <SubmitButton
             label={property ? '変更を保存' : '物件を登録'}
             loadingLabel="保存中..."
+            isPending={isPending}
           />
         </div>
       </div>

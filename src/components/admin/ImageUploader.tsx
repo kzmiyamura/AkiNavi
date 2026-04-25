@@ -80,6 +80,7 @@ export function ImageUploader({ storageFolder, initialPaths = [], onChange }: Pr
 
   const removeItem = useCallback(
     async (path: string) => {
+      if (!confirm('この画像を削除しますか？')) return
       const supabase = createClient()
       await supabase.storage.from(BUCKET).remove([path])
       setItems((prev) => {

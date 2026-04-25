@@ -67,24 +67,24 @@ export async function saveProperty(
   }
 
   // 部屋の一括 upsert
-  if (rooms.length > 0) {
-    const toUpsert = rooms.map((r) => ({
-      id: r.id ?? crypto.randomUUID(),
-      property_id: pid,
-      room_number: r.room_number,
-      rent: r.rent,
-      common_fee: r.common_fee,
-      status: r.status,
-      updated_at: new Date().toISOString(),
-    }))
+  const toUpsert = rooms.map((r) => ({
+    id: r.id ?? crypto.randomUUID(),
+    property_id: pid,
+    room_number: r.room_number,
+    rent: r.rent,
+    common_fee: r.common_fee,
+    status: r.status,
+    updated_at: new Date().toISOString(),
+  }))
 
+  if (toUpsert.length > 0) {
     const { error } = await supabase.from('rooms').upsert(toUpsert)
     if (error) return { error: '部屋情報の保存に失敗しました' }
   }
 
   // 編集時：削除された部屋を DB から消す
   if (propertyId) {
-    const keptIds = rooms.filter((r) => r.id).map((r) => r.id!)
+    const keptIds = toUpsert.map((r) => r.id)
 
     const { data: existing } = await supabase
       .from('rooms')
