@@ -1,17 +1,17 @@
 import { createAdminClient } from '@/lib/supabase/admin'
-import { ViewTrendChart, PropertyRankingChart } from '@/components/admin/DashboardCharts'
+import { ViewTrendChart } from '@/components/admin/DashboardCharts'
+import { RankingTabs } from '@/components/admin/RankingTabs'
 
 async function getStats() {
   const supabase = createAdminClient()
 
   const todayJst = new Date(Date.now() + 9 * 60 * 60 * 1000).toISOString().split('T')[0]
   const todayFilter = `${todayJst}T00:00:00+09:00`
-  console.log('[dashboard] todayJst:', todayJst, '| filter:', todayFilter)
 
   const [
     { count: pendingUsers },
     { count: vacantRooms },
-    { count: todayViews, error: viewError },
+    { count: todayViews },
   ] = await Promise.all([
     supabase
       .from('profiles')
@@ -28,16 +28,6 @@ async function getStats() {
       .gte('viewed_at', todayFilter),
   ])
 
-  console.log('[dashboard] todayViews:', todayViews, '| error:', viewError?.message)
-
-  // view_logs の最新5件を確認
-  const { data: recentLogs } = await supabase
-    .from('view_logs')
-    .select('id, viewed_at, user_id, room_id')
-    .order('viewed_at', { ascending: false })
-    .limit(5)
-  console.log('[dashboard] recent view_logs:', JSON.stringify(recentLogs))
-
   return {
     pendingUsers: pendingUsers ?? 0,
     vacantRooms: vacantRooms ?? 0,
@@ -47,16 +37,14 @@ async function getStats() {
 
 async function getChartData() {
   const supabase = createAdminClient()
-
-  // 過去14日分の日別閲覧数
   const since = new Date(Date.now() - 13 * 24 * 60 * 60 * 1000).toISOString()
+
+  // 日別閲覧数
   const { data: logs } = await supabase
     .from('view_logs')
     .select('viewed_at')
     .gte('viewed_at', since)
-    .order('viewed_at')
 
-  // 日別に集計
   const countByDate: Record<string, number> = {}
   for (let i = 13; i >= 0; i--) {
     const d = new Date(Date.now() - i * 24 * 60 * 60 * 1000)
@@ -70,47 +58,73 @@ async function getChartData() {
   }
   const trendData = Object.entries(countByDate).map(([date, count]) => ({ date, count }))
 
-  // 物件別閲覧ランキング（上位5件）
+  // 物件別・個人別・会社別ランキング用に一括取得
   const { data: rankLogs } = await supabase
     .from('view_logs')
-    .select('room_id, rooms(property_id, properties(name))')
+    .select(`
+      room_id,
+      user_id,
+      rooms(property_id, properties(name)),
+      profiles(full_name, email, company_name)
+    `)
     .gte('viewed_at', since)
 
-  const propertyCount: Record<string, { name: string; count: number }> = {}
+  type RankMap = Record<string, { name: string; count: number }>
+  const propertyMap: RankMap = {}
+  const userMap: RankMap = {}
+  const companyMap: RankMap = {}
+
   for (const log of rankLogs ?? []) {
     const room = (log.rooms as unknown) as { property_id: string; properties: { name: string } | null } | null
-    const propertyId = room?.property_id
-    const name = room?.properties?.name
-    if (!propertyId || !name) continue
-    if (!propertyCount[propertyId]) propertyCount[propertyId] = { name, count: 0 }
-    propertyCount[propertyId].count++
-  }
-  const rankingData = Object.values(propertyCount)
-    .sort((a, b) => b.count - a.count)
-    .slice(0, 5)
-    .map(({ name, count }) => ({ name, count }))
+    const profile = (log.profiles as unknown) as { full_name: string | null; email: string; company_name: string | null } | null
 
-  return { trendData, rankingData }
+    // 物件別
+    const propertyId = room?.property_id
+    const propertyName = room?.properties?.name
+    if (propertyId && propertyName) {
+      if (!propertyMap[propertyId]) propertyMap[propertyId] = { name: propertyName, count: 0 }
+      propertyMap[propertyId].count++
+    }
+
+    // 個人別
+    const userId = log.user_id as string
+    const userName = profile?.full_name ?? profile?.email ?? userId
+    if (userId) {
+      if (!userMap[userId]) userMap[userId] = { name: userName, count: 0 }
+      userMap[userId].count++
+    }
+
+    // 会社別
+    const company = profile?.company_name
+    if (company) {
+      if (!companyMap[company]) companyMap[company] = { name: company, count: 0 }
+      companyMap[company].count++
+    }
+  }
+
+  const toRanking = (map: RankMap) =>
+    Object.values(map)
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 5)
+      .map(({ name, count }) => ({ name, count }))
+
+  return {
+    trendData,
+    propertyRanking: toRanking(propertyMap),
+    userRanking: toRanking(userMap),
+    companyRanking: toRanking(companyMap),
+  }
 }
 
 export default async function AdminDashboardPage() {
-  const [stats, { trendData, rankingData }] = await Promise.all([
-    getStats(),
-    getChartData(),
-  ])
+  const [stats, chartData] = await Promise.all([getStats(), getChartData()])
 
   return (
     <div>
       <h1 className="text-2xl font-bold text-slate-800 mb-6">ダッシュボード</h1>
 
-      {/* サマリーカード */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        <StatCard
-          label="今日の閲覧数"
-          value={stats.todayViews}
-          icon="👁"
-          color="indigo"
-        />
+        <StatCard label="今日の閲覧数" value={stats.todayViews} icon="👁" color="indigo" />
         <StatCard
           label="承認待ちユーザー"
           value={stats.pendingUsers}
@@ -118,23 +132,21 @@ export default async function AdminDashboardPage() {
           color={stats.pendingUsers > 0 ? 'amber' : 'slate'}
           href="/admin/users"
         />
-        <StatCard
-          label="現在の空室数"
-          value={stats.vacantRooms}
-          icon="🏠"
-          color="green"
-        />
+        <StatCard label="現在の空室数" value={stats.vacantRooms} icon="🏠" color="green" />
       </div>
 
-      {/* グラフ */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="bg-white rounded-2xl border border-slate-200 p-6">
           <h2 className="text-base font-semibold text-slate-700 mb-4">日別閲覧数推移（過去14日）</h2>
-          <ViewTrendChart data={trendData} />
+          <ViewTrendChart data={chartData.trendData} />
         </div>
         <div className="bg-white rounded-2xl border border-slate-200 p-6">
-          <h2 className="text-base font-semibold text-slate-700 mb-4">人気物件ランキング（過去14日）</h2>
-          <PropertyRankingChart data={rankingData} />
+          <h2 className="text-base font-semibold text-slate-700 mb-4">閲覧ランキング（過去14日）</h2>
+          <RankingTabs
+            propertyData={chartData.propertyRanking}
+            userData={chartData.userRanking}
+            companyData={chartData.companyRanking}
+          />
         </div>
       </div>
     </div>
@@ -142,17 +154,10 @@ export default async function AdminDashboardPage() {
 }
 
 function StatCard({
-  label,
-  value,
-  icon,
-  color,
-  href,
+  label, value, icon, color, href,
 }: {
-  label: string
-  value: number
-  icon: string
-  color: 'indigo' | 'amber' | 'green' | 'slate'
-  href?: string
+  label: string; value: number; icon: string
+  color: 'indigo' | 'amber' | 'green' | 'slate'; href?: string
 }) {
   const colorMap = {
     indigo: 'bg-indigo-50 text-indigo-600',
@@ -160,7 +165,6 @@ function StatCard({
     green: 'bg-green-50 text-green-600',
     slate: 'bg-slate-50 text-slate-500',
   }
-
   const card = (
     <div className="bg-white rounded-2xl border border-slate-200 p-6 flex items-center gap-4">
       <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-2xl ${colorMap[color]}`}>
@@ -172,14 +176,6 @@ function StatCard({
       </div>
     </div>
   )
-
-  if (href) {
-    return (
-      <a href={href} className="block hover:shadow-md transition-shadow rounded-2xl">
-        {card}
-      </a>
-    )
-  }
-
+  if (href) return <a href={href} className="block hover:shadow-md transition-shadow rounded-2xl">{card}</a>
   return card
 }
