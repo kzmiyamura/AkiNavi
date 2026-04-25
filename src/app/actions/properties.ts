@@ -78,8 +78,12 @@ export async function saveProperty(
       updated_at: new Date().toISOString(),
     }))
 
+    console.log('[saveProperty] upsert rooms:', JSON.stringify(toUpsert))
     const { error } = await supabase.from('rooms').upsert(toUpsert)
-    if (error) return { error: '部屋情報の保存に失敗しました' }
+    if (error) {
+      console.log('[saveProperty] rooms upsert error:', error.message, error.details, error.hint)
+      return { error: '部屋情報の保存に失敗しました' }
+    }
   }
 
   // 編集時：削除された部屋を DB から消す
