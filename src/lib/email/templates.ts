@@ -145,7 +145,43 @@ ${primaryButton(`${SITE_URL}/properties`, '物件一覧を見る')}
 }
 
 // ─────────────────────────────────────────────
-// 3. ユーザーへの拒否通知メール
+// 3. 物件変更・追加通知メール（一般ユーザー向け）
+// ─────────────────────────────────────────────
+export function propertyChangedEmail({
+  propertyName,
+  propertyAddress,
+  isNew,
+}: {
+  propertyName: string
+  propertyAddress: string
+  isNew: boolean
+}): { subject: string; html: string } {
+  const title = isNew ? '新しい物件が登録されました' : '物件情報が更新されました'
+
+  const content = `
+<h2 style="margin: 0 0 8px; font-size: 18px; color: #1e293b;">${title}</h2>
+<p style="margin: 0 0 24px; font-size: 14px; color: #64748b; line-height: 1.6;">
+  以下の物件情報が${isNew ? '新たに登録' : '更新'}されました。<br>
+  最新の空室状況をご確認ください。
+</p>
+
+<table cellpadding="0" cellspacing="0" style="width: 100%; background: #f8fafc;
+  border-radius: 10px; padding: 16px 20px; border: 1px solid #e2e8f0;">
+  ${infoRow('物件名', propertyName)}
+  ${infoRow('所在地', propertyAddress)}
+</table>
+
+${primaryButton(`${SITE_URL}/properties`, '物件一覧を確認する')}
+`
+
+  return {
+    subject: `【AkiNavi】${title}：${propertyName}`,
+    html: layout(content),
+  }
+}
+
+// ─────────────────────────────────────────────
+// 4. ユーザーへの拒否通知メール
 // ─────────────────────────────────────────────
 export function userRejectedEmail({
   fullName,

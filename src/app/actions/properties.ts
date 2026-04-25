@@ -4,6 +4,8 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { getAdminProfile } from '@/utils/auth'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
+import { resend, EMAIL_FROM } from '@/lib/resend'
+import { propertyChangedEmail } from '@/lib/email/templates'
 
 export type RoomInput = {
   id?: string
@@ -101,7 +103,58 @@ export async function saveProperty(
   }
 
   revalidatePath('/admin/properties')
+
+  // 物件変更通知メール（fire-and-forget）
+  sendPropertyChangeNotification({
+    propertyName: name,
+    propertyAddress: address,
+    isNew: !propertyId,
+  }).catch(console.error)
+
   redirect('/admin/properties')
+}
+
+async function sendPropertyChangeNotification({
+  propertyName,
+  propertyAddress,
+  isNew,
+}: {
+  propertyName: string
+  propertyAddress: string
+  isNew: boolean
+}) {
+  const supabase = createAdminClient()
+
+  // 通知設定を確認
+  const { data: settings } = await supabase
+    .from('system_settings')
+    .select('notify_users_on_property_change')
+    .eq('id', 1)
+    .single()
+
+  if (!settings?.notify_users_on_property_change) return
+
+  // 承認済み・有効な一般ユーザーのメールを取得
+  const { data: users } = await supabase
+    .from('profiles')
+    .select('email')
+    .eq('role', 'user')
+    .eq('is_approved', true)
+    .eq('is_active', true)
+
+  if (!users?.length) return
+
+  const { subject, html } = propertyChangedEmail({ propertyName, propertyAddress, isNew })
+  const emails = users.map((u) => u.email)
+
+  // BCC で一括送信（受信者同士のアドレスは非表示）
+  await resend.emails.send({
+    from: EMAIL_FROM,
+    to: EMAIL_FROM,
+    bcc: emails,
+    subject,
+    html,
+  })
 }
 
 export type CsvImportState = { error?: string; imported?: number } | undefined
