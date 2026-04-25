@@ -1,5 +1,5 @@
 import { getCurrentProfile } from '@/utils/auth'
-import { logout } from '@/app/actions/auth'
+import { LogoutButton } from '@/components/user/LogoutButton'
 import Link from 'next/link'
 
 export default async function UserLayout({ children }: { children: React.ReactNode }) {
@@ -30,15 +30,7 @@ export default async function UserLayout({ children }: { children: React.ReactNo
             <span className="hidden sm:block text-sm text-slate-500 truncate max-w-[180px]">
               {profile.company_name ?? profile.email}
             </span>
-            <form action={logout}>
-              <button
-                type="submit"
-                className="text-xs text-slate-400 hover:text-slate-600 border border-slate-200
-                  rounded-lg px-3 py-1.5 transition-colors"
-              >
-                ログアウト
-              </button>
-            </form>
+            <LogoutButton />
           </div>
         </div>
       </header>
