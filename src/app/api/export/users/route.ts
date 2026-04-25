@@ -15,7 +15,8 @@ export async function GET() {
     .eq('id', user.id)
     .single()
 
-  if (profile?.role !== 'admin') {
+  const isDeveloper = profile?.role === 'developer'
+  if (profile?.role !== 'admin' && !isDeveloper) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
@@ -29,11 +30,12 @@ export async function GET() {
   const header = 'メールアドレス,氏名,会社名,電話番号,承認状態,登録日,承認日,最終ログイン日,管理者メモ'
   const rows: string[] = [header]
 
+  const MASK = '••••••••'
   for (const u of users ?? []) {
     rows.push([
-      csvCell(u.email),
-      csvCell(u.full_name),
-      csvCell(u.company_name),
+      csvCell(isDeveloper ? MASK : u.email),
+      csvCell(isDeveloper ? MASK : u.full_name),
+      csvCell(isDeveloper ? MASK : u.company_name),
       csvCell(u.phone_number),
       u.is_approved ? '承認済み' : '承認待ち',
       formatDate(u.created_at),

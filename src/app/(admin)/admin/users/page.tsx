@@ -1,4 +1,5 @@
 import { createAdminClient } from '@/lib/supabase/admin'
+import { getAdminProfile } from '@/utils/auth'
 import { UserApprovalCard } from '@/components/admin/UserApprovalCard'
 
 async function getUsers() {
@@ -14,7 +15,8 @@ async function getUsers() {
 }
 
 export default async function AdminUsersPage() {
-  const users = await getUsers()
+  const [users, viewer] = await Promise.all([getUsers(), getAdminProfile()])
+  const isReadOnly = viewer.role === 'developer'
   const pending = users.filter((u) => !u.is_approved)
   const approved = users.filter((u) => u.is_approved)
 
@@ -52,7 +54,7 @@ export default async function AdminUsersPage() {
         ) : (
           <div className="space-y-3">
             {pending.map((user) => (
-              <UserApprovalCard key={user.id} user={user} />
+              <UserApprovalCard key={user.id} user={user} isReadOnly={isReadOnly} />
             ))}
           </div>
         )}
@@ -70,7 +72,7 @@ export default async function AdminUsersPage() {
         ) : (
           <div className="space-y-3">
             {approved.map((user) => (
-              <UserApprovalCard key={user.id} user={user} />
+              <UserApprovalCard key={user.id} user={user} isReadOnly={isReadOnly} />
             ))}
           </div>
         )}

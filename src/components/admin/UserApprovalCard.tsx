@@ -14,7 +14,9 @@ type User = {
   role: string
 }
 
-export function UserApprovalCard({ user }: { user: User }) {
+const MASK = '••••••••'
+
+export function UserApprovalCard({ user, isReadOnly = false }: { user: User; isReadOnly?: boolean }) {
   const [result, setResult] = useState<{ error?: string; success?: string }>()
   const [isPending, startTransition] = useTransition()
   const formRef = useRef<HTMLFormElement>(null)
@@ -73,7 +75,7 @@ export function UserApprovalCard({ user }: { user: User }) {
           <div>
             <div className="flex items-center gap-2">
               <p className="font-semibold text-slate-800">
-                {user.full_name ?? '（氏名未設定）'}
+                {isReadOnly ? MASK : (user.full_name ?? '（氏名未設定）')}
               </p>
               <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
                 !user.is_approved
@@ -85,14 +87,14 @@ export function UserApprovalCard({ user }: { user: User }) {
                 {!user.is_approved ? '承認待ち' : user.role === 'developer' ? '開発者' : '承認済み'}
               </span>
             </div>
-            <p className="text-sm text-slate-500 mt-0.5">{user.company_name}</p>
+            <p className="text-sm text-slate-500 mt-0.5">{isReadOnly ? MASK : user.company_name}</p>
             <p className="text-xs text-slate-400 mt-1">
-              {user.email} · 登録日: {registeredAt}
+              {isReadOnly ? MASK : user.email} · 登録日: {registeredAt}
             </p>
           </div>
         </div>
 
-        {!user.is_approved && (
+        {!user.is_approved && !isReadOnly && (
           <div className="mt-4 space-y-3">
             <form ref={formRef} onSubmit={handleApprove} className="space-y-3">
               <input type="hidden" name="user_id" value={user.id} />
