@@ -123,38 +123,52 @@ async function sendPropertyChangeNotification({
   propertyAddress: string
   isNew: boolean
 }) {
+  console.log('[notify] start', { propertyName, isNew })
   const supabase = createAdminClient()
 
   // 通知設定を確認
-  const { data: settings } = await supabase
+  const { data: settings, error: settingsError } = await supabase
     .from('system_settings')
     .select('notify_users_on_property_change')
     .eq('id', 1)
     .single()
 
-  if (!settings?.notify_users_on_property_change) return
+  console.log('[notify] settings', { settings, settingsError })
+
+  if (!settings?.notify_users_on_property_change) {
+    console.log('[notify] notification disabled, skipping')
+    return
+  }
 
   // 承認済み・有効な一般ユーザーのメールを取得
-  const { data: users } = await supabase
+  const { data: users, error: usersError } = await supabase
     .from('profiles')
     .select('email')
     .eq('role', 'user')
     .eq('is_approved', true)
     .eq('is_active', true)
 
-  if (!users?.length) return
+  console.log('[notify] users', { count: users?.length, usersError })
+
+  if (!users?.length) {
+    console.log('[notify] no users to notify')
+    return
+  }
 
   const { subject, html } = propertyChangedEmail({ propertyName, propertyAddress, isNew })
   const emails = users.map((u) => u.email)
+  console.log('[notify] sending to', emails)
 
   // BCC で一括送信（受信者同士のアドレスは非表示）
-  await resend.emails.send({
+  const { data: sendData, error: sendError } = await resend.emails.send({
     from: EMAIL_FROM,
     to: EMAIL_FROM,
     bcc: emails,
     subject,
     html,
   })
+
+  console.log('[notify] send result', { sendData, sendError })
 }
 
 export type CsvImportState = { error?: string; imported?: number } | undefined
