@@ -25,8 +25,8 @@ export const mailer = {
     async send(params: SendParams) {
       const sender = parseSender(params.from)
       const toList = Array.isArray(params.to)
-        ? params.to.map((e) => ({ email: e }))
-        : [{ email: params.to }]
+        ? params.to.map((e) => parseSender(e))
+        : [parseSender(params.to)]
 
       try {
         const result = await client.transactionalEmails.sendTransacEmail({
