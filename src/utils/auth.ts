@@ -7,6 +7,7 @@ export type Profile = {
   email: string
   full_name: string | null
   company_name: string | null
+  phone_number: string | null
   role: 'admin' | 'user'
   is_approved: boolean
   created_at: string
