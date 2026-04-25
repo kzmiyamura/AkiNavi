@@ -21,15 +21,22 @@ export async function login(_prev: AuthState, formData: FormData): Promise<AuthS
   const password = formData.get('password') as string
   console.log('[login] email:', email, '| password length:', password?.length ?? 0)
 
-  const { error } = await supabase.auth.signInWithPassword({ email, password })
+  const { data: signInData, error } = await supabase.auth.signInWithPassword({ email, password })
 
   if (error) {
     console.log('[login] Supabase error:', error.message, '| status:', error.status)
     return { error: 'メールアドレスまたはパスワードが正しくありません' }
   }
 
-  console.log('[login] success → redirecting to /properties')
-  redirect('/properties')
+  // 管理者は管理画面へ、一般ユーザーは物件一覧へ
+  const adminSupabase = createAdminClient()
+  const { data: profile } = await adminSupabase
+    .from('profiles')
+    .select('role')
+    .eq('id', signInData.user.id)
+    .single()
+
+  redirect(profile?.role === 'admin' ? '/admin' : '/properties')
 }
 
 export async function signUp(_prev: AuthState, formData: FormData): Promise<AuthState> {
