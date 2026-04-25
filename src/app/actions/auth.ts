@@ -3,7 +3,7 @@
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 import { redirect } from 'next/navigation'
-import { resend, EMAIL_FROM } from '@/lib/resend'
+import { mailer as resend, EMAIL_FROM } from '@/lib/mailer'
 import { adminApprovalRequestEmail } from '@/lib/email/templates'
 
 type AuthState = { error: string } | undefined

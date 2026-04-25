@@ -3,7 +3,7 @@
 import { createAdminClient } from '@/lib/supabase/admin'
 import { getAdminProfile } from '@/utils/auth'
 import { revalidatePath } from 'next/cache'
-import { resend, EMAIL_FROM } from '@/lib/resend'
+import { mailer as resend, EMAIL_FROM } from '@/lib/mailer'
 import { userApprovedEmail, userRejectedEmail } from '@/lib/email/templates'
 
 export type UserActionState = { error?: string; success?: string } | undefined

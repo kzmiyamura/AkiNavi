@@ -4,7 +4,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { getAdminProfile } from '@/utils/auth'
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { resend, EMAIL_FROM } from '@/lib/resend'
+import { mailer as resend, EMAIL_FROM } from '@/lib/mailer'
 import { propertyChangedEmail } from '@/lib/email/templates'
 
 export type RoomInput = {
