@@ -11,6 +11,7 @@ export async function saveAdminSettings(
   formData: FormData
 ): Promise<SettingsState> {
   const profile = await getAdminProfile()
+  if (profile.role === 'developer') return { error: '開発者アカウントは設定を変更できません' }
   const supabase = createAdminClient()
 
   const fullName = (formData.get('full_name') as string).trim()
