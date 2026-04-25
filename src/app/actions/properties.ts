@@ -104,8 +104,8 @@ export async function saveProperty(
 
   revalidatePath('/admin/properties')
 
-  // 物件変更通知メール（fire-and-forget）
-  sendPropertyChangeNotification({
+  // 物件変更通知メール（redirect前に完了させる）
+  await sendPropertyChangeNotification({
     propertyName: name,
     propertyAddress: address,
     isNew: !propertyId,
