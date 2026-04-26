@@ -37,8 +37,8 @@ export default async function AdminUsersPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+        <div className="flex items-center gap-3 flex-wrap">
           <h1 className="text-2xl font-bold text-slate-800">ユーザー管理</h1>
           {pending.length > 0 && (
             <span className="bg-amber-100 text-amber-700 text-xs font-semibold px-3 py-1 rounded-full">
@@ -48,12 +48,12 @@ export default async function AdminUsersPage() {
         </div>
         <a
           href="/api/export/users"
-          className="flex items-center gap-2 px-4 py-2 border border-slate-300 text-slate-700 text-sm font-semibold rounded-lg hover:bg-slate-50 transition-colors"
+          className="self-start sm:self-auto flex items-center gap-2 px-4 py-2 border border-slate-300 text-slate-700 text-sm font-semibold rounded-lg hover:bg-slate-50 transition-colors whitespace-nowrap"
         >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
+          <svg className="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth={2} stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M12 3v13.5m0 0-4.5-4.5M12 16.5l4.5-4.5" />
           </svg>
-          CSVエクスポート
+          CSV出力
         </a>
       </div>
 
