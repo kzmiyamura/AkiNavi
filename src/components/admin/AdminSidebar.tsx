@@ -78,7 +78,7 @@ export function AdminSidebar() {
   const pathname = usePathname()
 
   return (
-    <aside className="flex flex-col w-60 min-h-screen bg-slate-900 text-white">
+    <aside className="flex flex-col w-60 h-screen sticky top-0 bg-slate-900 text-white">
       {/* ロゴ */}
       <div className="px-6 py-5 border-b border-slate-700">
         <span className="text-xl font-bold text-indigo-400">AkiNavi</span>
@@ -86,7 +86,7 @@ export function AdminSidebar() {
       </div>
 
       {/* ナビゲーション */}
-      <nav className="flex-1 px-3 py-4 space-y-1">
+      <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
         {NAV_ITEMS.map((item) => {
           const isActive = pathname === item.href
           return (
