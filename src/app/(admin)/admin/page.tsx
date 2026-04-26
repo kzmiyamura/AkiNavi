@@ -136,11 +136,11 @@ export default async function AdminDashboardPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-2xl border border-slate-200 p-6">
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 min-w-0 overflow-hidden">
           <h2 className="text-base font-semibold text-slate-700 mb-4">日別閲覧数推移（過去14日）</h2>
           <ViewTrendChart data={chartData.trendData} />
         </div>
-        <div className="bg-white rounded-2xl border border-slate-200 p-6">
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 min-w-0 overflow-hidden">
           <h2 className="text-base font-semibold text-slate-700 mb-4">閲覧ランキング（過去14日）</h2>
           <RankingTabs
             propertyData={chartData.propertyRanking}

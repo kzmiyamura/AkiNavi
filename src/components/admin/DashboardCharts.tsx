@@ -18,25 +18,28 @@ export function ViewTrendChart({ data }: { data: DailyData[] }) {
   }
 
   return (
-    <ResponsiveContainer width="100%" height={192}>
-      <LineChart data={data} margin={{ top: 4, right: 8, left: -24, bottom: 0 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-        <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#94a3b8' }} />
-        <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} allowDecimals={false} />
-        <Tooltip
-          contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e2e8f0' }}
-          formatter={(v) => [`${v} 回`, '閲覧数']}
-        />
-        <Line
-          type="monotone"
-          dataKey="count"
-          stroke="#6366f1"
-          strokeWidth={2}
-          dot={{ fill: '#6366f1', r: 3 }}
-          activeDot={{ r: 5 }}
-        />
-      </LineChart>
-    </ResponsiveContainer>
+    // min-w-0 が必要: Recharts は親に明示的な幅がないと初期幅を overflowさせることがある
+    <div className="w-full min-w-0 overflow-hidden">
+      <ResponsiveContainer width="100%" height={192}>
+        <LineChart data={data} margin={{ top: 4, right: 8, left: -24, bottom: 0 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+          <XAxis dataKey="date" tick={{ fontSize: 11, fill: '#94a3b8' }} />
+          <YAxis tick={{ fontSize: 11, fill: '#94a3b8' }} allowDecimals={false} />
+          <Tooltip
+            contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e2e8f0' }}
+            formatter={(v) => [`${v} 回`, '閲覧数']}
+          />
+          <Line
+            type="monotone"
+            dataKey="count"
+            stroke="#6366f1"
+            strokeWidth={2}
+            dot={{ fill: '#6366f1', r: 3 }}
+            activeDot={{ r: 5 }}
+          />
+        </LineChart>
+      </ResponsiveContainer>
+    </div>
   )
 }
 
@@ -52,26 +55,28 @@ export function PropertyRankingChart({ data }: { data: RankingData[] }) {
   }
 
   return (
-    <ResponsiveContainer width="100%" height={192}>
-      <BarChart data={data} layout="vertical" margin={{ top: 4, right: 16, left: 8, bottom: 0 }}>
-        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
-        <XAxis type="number" tick={{ fontSize: 11, fill: '#94a3b8' }} allowDecimals={false} />
-        <YAxis
-          type="category"
-          dataKey="name"
-          width={100}
-          tick={{ fontSize: 11, fill: '#64748b' }}
-        />
-        <Tooltip
-          contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e2e8f0' }}
-          formatter={(v) => [`${v} 回`, '閲覧数']}
-        />
-        <Bar dataKey="count" radius={[0, 4, 4, 0]}>
-          {data.map((_, i) => (
-            <Cell key={i} fill={COLORS[i % COLORS.length]} />
-          ))}
-        </Bar>
-      </BarChart>
-    </ResponsiveContainer>
+    <div className="w-full min-w-0 overflow-hidden">
+      <ResponsiveContainer width="100%" height={192}>
+        <BarChart data={data} layout="vertical" margin={{ top: 4, right: 16, left: 8, bottom: 0 }}>
+          <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" horizontal={false} />
+          <XAxis type="number" tick={{ fontSize: 11, fill: '#94a3b8' }} allowDecimals={false} />
+          <YAxis
+            type="category"
+            dataKey="name"
+            width={80}
+            tick={{ fontSize: 10, fill: '#64748b' }}
+          />
+          <Tooltip
+            contentStyle={{ fontSize: 12, borderRadius: 8, border: '1px solid #e2e8f0' }}
+            formatter={(v) => [`${v} 回`, '閲覧数']}
+          />
+          <Bar dataKey="count" radius={[0, 4, 4, 0]}>
+            {data.map((_, i) => (
+              <Cell key={i} fill={COLORS[i % COLORS.length]} />
+            ))}
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
   )
 }
