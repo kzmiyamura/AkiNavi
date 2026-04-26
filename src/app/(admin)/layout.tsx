@@ -7,7 +7,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const profile = await getAdminProfile()
 
   return (
-    <div className="flex min-h-screen bg-slate-100">
+    <div className="flex min-h-screen w-full max-w-full overflow-x-hidden bg-slate-100">
       {/* デスクトップ: 左サイドバー */}
       <div className="hidden md:flex md:flex-shrink-0">
         <AdminSidebar />
@@ -24,7 +24,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         {/* ページコンテンツ */}
         <main className="flex-1 p-4 md:p-8 pb-20 md:pb-8 overflow-x-hidden">
           {/* 管理者名表示 */}
-          <div className="mb-6 text-right text-sm text-slate-500">
+          <div className="mb-6 text-right text-sm text-slate-500 truncate">
             {profile.full_name ?? profile.email} でログイン中
           </div>
           {children}
