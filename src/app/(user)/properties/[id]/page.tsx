@@ -26,7 +26,9 @@ async function getAdminContact() {
     .from('profiles')
     .select('email, phone_number')
     .eq('role', 'admin')
-    .single()
+    .order('approval_date', { ascending: true })
+    .limit(1)
+    .maybeSingle()
   return { email: data?.email ?? '', phone: (data as Record<string, unknown>)?.phone_number as string ?? '' }
 }
 
