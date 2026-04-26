@@ -1,4 +1,5 @@
 import { createAdminClient } from '@/lib/supabase/admin'
+import { getAdminProfile } from '@/utils/auth'
 import { ViewTrendChart } from '@/components/admin/DashboardCharts'
 import { RankingTabs } from '@/components/admin/RankingTabs'
 
@@ -117,7 +118,12 @@ async function getChartData() {
 }
 
 export default async function AdminDashboardPage() {
-  const [stats, chartData] = await Promise.all([getStats(), getChartData()])
+  const [stats, chartData, profile] = await Promise.all([getStats(), getChartData(), getAdminProfile()])
+  const isDeveloper = profile.role === 'developer'
+
+  const propertyRanking = isDeveloper
+    ? chartData.propertyRanking.map((item, i) => ({ ...item, name: `物件 ${i + 1}` }))
+    : chartData.propertyRanking
 
   return (
     <div>
@@ -143,7 +149,7 @@ export default async function AdminDashboardPage() {
         <div className="bg-white rounded-2xl border border-slate-200 p-6 min-w-0 overflow-hidden">
           <h2 className="text-base font-semibold text-slate-700 mb-4">閲覧ランキング（過去14日）</h2>
           <RankingTabs
-            propertyData={chartData.propertyRanking}
+            propertyData={propertyRanking}
             userData={chartData.userRanking}
             companyData={chartData.companyRanking}
           />
