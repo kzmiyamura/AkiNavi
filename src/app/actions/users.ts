@@ -138,6 +138,27 @@ export async function toggleAllUsersLogin(
   return { success: enabled ? '全ユーザーのログインを再開しました' : '全ユーザーのログインを停止しました' }
 }
 
+export async function deleteUser(
+  _prev: UserActionState,
+  formData: FormData
+): Promise<UserActionState> {
+  const profile = await getAdminProfile()
+  if (profile.role !== 'admin') return { error: '管理者のみ実行できます' }
+  const supabase = createAdminClient()
+
+  const userId = formData.get('user_id') as string
+
+  // 自分自身は削除不可
+  if (userId === profile.id) return { error: '自分自身は削除できません' }
+
+  // auth.users から削除（profiles は CASCADE で連動削除）
+  const { error } = await supabase.auth.admin.deleteUser(userId)
+  if (error) return { error: 'ユーザーの削除に失敗しました' }
+
+  revalidatePath('/admin/users')
+  return { success: 'ユーザーを削除しました' }
+}
+
 export async function updateAdminNotes(
   _prev: UserActionState,
   formData: FormData
