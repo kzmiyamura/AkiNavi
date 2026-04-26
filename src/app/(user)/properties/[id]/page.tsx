@@ -5,9 +5,6 @@ import { ImageSlider } from '@/components/user/ImageSlider'
 import { ViewLogger } from '@/components/user/ViewLogger'
 import { formatRent } from '@/utils/format'
 
-const CONTACT_PHONE = process.env.NEXT_PUBLIC_CONTACT_PHONE ?? ''
-const CONTACT_EMAIL = process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? ''
-
 async function getProperty(id: string) {
   const supabase = createAdminClient()
 
@@ -23,14 +20,27 @@ async function getProperty(id: string) {
   return data
 }
 
+async function getAdminContact() {
+  const supabase = createAdminClient()
+  const { data } = await supabase
+    .from('profiles')
+    .select('email, phone_number')
+    .eq('role', 'admin')
+    .single()
+  return { email: data?.email ?? '', phone: (data as Record<string, unknown>)?.phone_number as string ?? '' }
+}
+
 export default async function PropertyDetailPage({
   params,
 }: {
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const property = await getProperty(id)
+  const [property, adminContact] = await Promise.all([getProperty(id), getAdminContact()])
   if (!property) notFound()
+
+  const CONTACT_EMAIL = adminContact.email
+  const CONTACT_PHONE = adminContact.phone
 
   const imagePaths: string[] = property.image_paths ?? []
   const rooms = (property.rooms ?? []).filter(
