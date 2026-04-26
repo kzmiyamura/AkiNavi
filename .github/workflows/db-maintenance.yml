@@ -1,0 +1,30 @@
+name: DB Maintenance
+
+on:
+  schedule:
+    # 毎日 02:00 UTC に Materialized View を更新
+    - cron: '0 2 * * *'
+    # 毎日 02:10 UTC に古い view_logs を削除
+    - cron: '10 2 * * *'
+  workflow_dispatch: # 手動実行も可能
+
+jobs:
+  refresh-materialized-view:
+    name: Refresh daily_room_stats
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '0 2 * * *' || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Refresh Materialized View
+        run: |
+          psql "${{ secrets.SUPABASE_DB_URL }}" \
+            -c "REFRESH MATERIALIZED VIEW CONCURRENTLY daily_room_stats;"
+
+  purge-old-view-logs:
+    name: Purge view_logs older than 3 months
+    runs-on: ubuntu-latest
+    if: github.event.schedule == '10 2 * * *' || github.event_name == 'workflow_dispatch'
+    steps:
+      - name: Delete old view_logs
+        run: |
+          psql "${{ secrets.SUPABASE_DB_URL }}" \
+            -c "DELETE FROM view_logs WHERE viewed_at < NOW() - INTERVAL '3 months';"
