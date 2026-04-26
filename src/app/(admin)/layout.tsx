@@ -1,6 +1,7 @@
 import { getAdminProfile } from '@/utils/auth'
 import { AdminSidebar } from '@/components/admin/AdminSidebar'
 import { AdminMobileNav } from '@/components/admin/AdminMobileNav'
+import Link from 'next/link'
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   // サーバーサイドで管理者チェック（middleware の二重防護）
@@ -25,7 +26,9 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <main className="flex-1 p-4 md:p-8 pb-20 md:pb-8 overflow-x-hidden">
           {/* 管理者名表示 */}
           <div className="mb-6 text-right text-sm text-slate-500 truncate">
-            {profile.full_name ?? profile.email} でログイン中
+            <Link href="/admin/settings" className="hover:text-indigo-600 transition-colors">
+              {profile.full_name ?? profile.email} でログイン中
+            </Link>
           </div>
           {children}
         </main>
