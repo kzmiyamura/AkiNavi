@@ -1,7 +1,7 @@
 'use server'
 
 import { createAdminClient } from '@/lib/supabase/admin'
-import { getAdminProfile } from '@/utils/auth'
+import { getAdminProfile, getCurrentProfile } from '@/utils/auth'
 import { revalidatePath } from 'next/cache'
 
 export type SettingsState = { error?: string; success?: string } | undefined
@@ -59,4 +59,46 @@ export async function saveAdminSettings(
 
   revalidatePath('/admin/settings')
   return { success: '設定を保存しました' }
+}
+
+export async function saveUserProfile(
+  _prev: SettingsState,
+  formData: FormData
+): Promise<SettingsState> {
+  const profile = await getCurrentProfile()
+  const supabase = createAdminClient()
+
+  const fullName = (formData.get('full_name') as string).trim()
+  const companyName = (formData.get('company_name') as string).trim()
+  const phoneNumber = (formData.get('phone_number') as string).trim()
+  const newPassword = (formData.get('new_password') as string).trim()
+  const confirmPassword = (formData.get('confirm_password') as string).trim()
+
+  if (newPassword || confirmPassword) {
+    if (newPassword !== confirmPassword) {
+      return { error: '新しいパスワードが一致しません' }
+    }
+    if (newPassword.length < 8) {
+      return { error: 'パスワードは8文字以上で設定してください' }
+    }
+    const { error } = await supabase.auth.admin.updateUserById(profile.id, {
+      password: newPassword,
+    })
+    if (error) return { error: 'パスワードの変更に失敗しました' }
+  }
+
+  const { error } = await supabase
+    .from('profiles')
+    .update({
+      full_name: fullName || null,
+      company_name: companyName || null,
+      phone_number: phoneNumber || null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', profile.id)
+
+  if (error) return { error: 'プロフィールの更新に失敗しました' }
+
+  revalidatePath('/profile')
+  return { success: 'プロフィールを更新しました' }
 }
