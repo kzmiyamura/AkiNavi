@@ -8,7 +8,7 @@
 
 ## 2. 技術スタック
 
-- **Frontend**: Next.js 14+ (App Router) / TypeScript / Tailwind CSS
+- **Frontend**: Next.js 16 (App Router) / TypeScript / Tailwind CSS
 - **Backend/DB**: Supabase (PostgreSQL)
 - **Storage**: Supabase Storage (物件画像・チラシ等)
 - **Auth**: Supabase Auth (Email/Password)
@@ -157,10 +157,10 @@ USING (
 
 | パス | 説明 |
 |------|------|
-| `src/app/(auth)/` | 認証画面（login, signup, pending, reset-password） |
+| `src/app/(auth)/` | 認証画面（login, signup, pending, reset-password, select-role, suspended） |
 | `src/app/(user)/` | 一般ユーザー画面（properties, profile） |
 | `src/app/(admin)/admin/` | 管理者画面（dashboard, properties, users, settings） |
-| `src/app/actions/` | Server Actions（auth, properties, users, settings, viewLog 等） |
+| `src/app/actions/` | Server Actions（auth, properties, users, settings, notificationSettings, viewLog） |
 | `src/components/user/` | 一般ユーザー用コンポーネント |
 | `src/components/admin/` | 管理者用コンポーネント |
 | `src/components/analytics/` | Clarity / GA4 連携コンポーネント |
