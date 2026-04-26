@@ -22,7 +22,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         </header>
 
         {/* ページコンテンツ */}
-        <main className="flex-1 p-4 md:p-8 pb-20 md:pb-8">
+        <main className="flex-1 p-4 md:p-8 pb-20 md:pb-8 overflow-x-hidden">
           {/* 管理者名表示 */}
           <div className="mb-6 text-right text-sm text-slate-500">
             {profile.full_name ?? profile.email} でログイン中

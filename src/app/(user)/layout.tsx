@@ -35,7 +35,7 @@ export default async function UserLayout({ children }: { children: React.ReactNo
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-4 py-6">
+      <main className="max-w-5xl mx-auto px-4 py-6 overflow-x-hidden">
         {children}
       </main>
     </div>
