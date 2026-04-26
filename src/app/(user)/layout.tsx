@@ -1,5 +1,6 @@
 import { getCurrentProfile } from '@/utils/auth'
 import { LogoutButton } from '@/components/user/LogoutButton'
+import { ClarityIdentify } from '@/components/analytics/ClarityIdentify'
 import Link from 'next/link'
 
 export default async function UserLayout({ children }: { children: React.ReactNode }) {
@@ -7,6 +8,7 @@ export default async function UserLayout({ children }: { children: React.ReactNo
 
   return (
     <div className="min-h-screen bg-slate-50">
+      <ClarityIdentify email={profile.email} />
       {/* ヘッダー */}
       <header className="sticky top-0 z-40 bg-white border-b border-slate-200">
         <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between">
