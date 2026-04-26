@@ -4,6 +4,8 @@ import { useActionState } from 'react'
 import { saveContactSettings } from '@/app/actions/notificationSettings'
 import { SubmitButton } from '@/components/ui/SubmitButton'
 
+const MASK = '••••••••'
+
 export function ContactSettingsForm({
   contactEmail,
   contactPhone,
@@ -15,10 +17,8 @@ export function ContactSettingsForm({
 }) {
   const [state, action, isPending] = useActionState(saveContactSettings, undefined)
 
-  const inputClass = `w-full px-4 py-2.5 rounded-lg border text-base focus:outline-none
-    ${isReadOnly
-      ? 'border-slate-200 bg-slate-50 text-slate-400 cursor-not-allowed'
-      : 'border-slate-300 text-slate-900 placeholder:text-slate-400 focus:ring-2 focus:ring-indigo-500'}`
+  const maskedClass = 'w-full px-4 py-2.5 rounded-lg border border-slate-200 bg-slate-50 text-base text-slate-400 cursor-not-allowed select-none'
+  const inputClass = 'w-full px-4 py-2.5 rounded-lg border border-slate-300 text-base text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500'
 
   return (
     <form action={action}>
@@ -28,26 +28,32 @@ export function ContactSettingsForm({
 
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">メールアドレス</label>
-          <input
-            name="contact_email"
-            type="email"
-            readOnly={isReadOnly}
-            defaultValue={contactEmail ?? ''}
-            placeholder="info@example.com"
-            className={inputClass}
-          />
+          {isReadOnly ? (
+            <div className={maskedClass}>{contactEmail ? MASK : '未設定'}</div>
+          ) : (
+            <input
+              name="contact_email"
+              type="email"
+              defaultValue={contactEmail ?? ''}
+              placeholder="info@example.com"
+              className={inputClass}
+            />
+          )}
         </div>
 
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">電話番号</label>
-          <input
-            name="contact_phone"
-            type="tel"
-            readOnly={isReadOnly}
-            defaultValue={contactPhone ?? ''}
-            placeholder="000-0000-0000"
-            className={inputClass}
-          />
+          {isReadOnly ? (
+            <div className={maskedClass}>{contactPhone ? MASK : '未設定'}</div>
+          ) : (
+            <input
+              name="contact_phone"
+              type="tel"
+              defaultValue={contactPhone ?? ''}
+              placeholder="000-0000-0000"
+              className={inputClass}
+            />
+          )}
         </div>
 
         {state?.error && (
