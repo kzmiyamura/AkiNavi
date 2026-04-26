@@ -158,7 +158,7 @@ export function PropertyForm({ property, initialRooms = [] }: Props) {
                       onChange={(e) => updateRow(i, 'room_number', e.target.value)}
                       placeholder="101"
                       className="w-full px-2 py-1.5 rounded border border-slate-200
-                        focus:outline-none focus:ring-1 focus:ring-indigo-500 text-sm"
+                        focus:outline-none focus:ring-1 focus:ring-indigo-500 text-base text-slate-900 placeholder:text-slate-400"
                     />
                   </td>
                   <td className="px-4 py-2">
@@ -169,7 +169,7 @@ export function PropertyForm({ property, initialRooms = [] }: Props) {
                       placeholder="35000"
                       min={0}
                       className="w-full px-2 py-1.5 rounded border border-slate-200
-                        focus:outline-none focus:ring-1 focus:ring-indigo-500 text-sm"
+                        focus:outline-none focus:ring-1 focus:ring-indigo-500 text-base text-slate-900 placeholder:text-slate-400"
                     />
                   </td>
                   <td className="px-4 py-2">
@@ -180,7 +180,7 @@ export function PropertyForm({ property, initialRooms = [] }: Props) {
                       placeholder="3000"
                       min={0}
                       className="w-full px-2 py-1.5 rounded border border-slate-200
-                        focus:outline-none focus:ring-1 focus:ring-indigo-500 text-sm"
+                        focus:outline-none focus:ring-1 focus:ring-indigo-500 text-base text-slate-900 placeholder:text-slate-400"
                     />
                   </td>
                   <td className="px-4 py-2">
@@ -188,7 +188,7 @@ export function PropertyForm({ property, initialRooms = [] }: Props) {
                       value={row.status}
                       onChange={(e) => updateRow(i, 'status', e.target.value as RoomInput['status'])}
                       className={`px-2 py-1.5 rounded border border-slate-200
-                        focus:outline-none focus:ring-1 focus:ring-indigo-500 text-sm font-medium
+                        focus:outline-none focus:ring-1 focus:ring-indigo-500 text-base font-medium
                         ${STATUS_OPTIONS.find((s) => s.value === row.status)?.color}`}
                     >
                       {STATUS_OPTIONS.map((s) => (
@@ -241,7 +241,7 @@ export function PropertyForm({ property, initialRooms = [] }: Props) {
                     onChange={(e) => updateRow(i, 'room_number', e.target.value)}
                     placeholder="101"
                     className="w-full px-3 py-2 rounded-lg border border-slate-200
-                      focus:outline-none focus:ring-1 focus:ring-indigo-500 text-sm"
+                      focus:outline-none focus:ring-1 focus:ring-indigo-500 text-base text-slate-900 placeholder:text-slate-400"
                   />
                 </div>
                 <div>
@@ -250,7 +250,7 @@ export function PropertyForm({ property, initialRooms = [] }: Props) {
                     value={row.status}
                     onChange={(e) => updateRow(i, 'status', e.target.value as RoomInput['status'])}
                     className="w-full px-3 py-2 rounded-lg border border-slate-200
-                      focus:outline-none focus:ring-1 focus:ring-indigo-500 text-sm"
+                      focus:outline-none focus:ring-1 focus:ring-indigo-500 text-base text-slate-900"
                   >
                     {STATUS_OPTIONS.map((s) => (
                       <option key={s.value} value={s.value}>{s.label}</option>
@@ -266,7 +266,7 @@ export function PropertyForm({ property, initialRooms = [] }: Props) {
                     placeholder="35000"
                     min={0}
                     className="w-full px-3 py-2 rounded-lg border border-slate-200
-                      focus:outline-none focus:ring-1 focus:ring-indigo-500 text-sm"
+                      focus:outline-none focus:ring-1 focus:ring-indigo-500 text-base text-slate-900 placeholder:text-slate-400"
                   />
                 </div>
                 <div>
@@ -278,7 +278,7 @@ export function PropertyForm({ property, initialRooms = [] }: Props) {
                     placeholder="3000"
                     min={0}
                     className="w-full px-3 py-2 rounded-lg border border-slate-200
-                      focus:outline-none focus:ring-1 focus:ring-indigo-500 text-sm"
+                      focus:outline-none focus:ring-1 focus:ring-indigo-500 text-base text-slate-900 placeholder:text-slate-400"
                   />
                 </div>
               </div>
