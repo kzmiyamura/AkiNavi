@@ -1,6 +1,5 @@
 import { getAdminProfile } from '@/utils/auth'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { SettingsForm } from '@/components/admin/SettingsForm'
 import { NotificationSettingsForm } from '@/components/admin/NotificationSettingsForm'
 import { ContactSettingsForm } from '@/components/admin/ContactSettingsForm'
 
@@ -29,7 +28,6 @@ export default async function AdminSettingsPage() {
     <div className="max-w-2xl mx-auto">
       <h1 className="text-2xl font-bold text-slate-800 mb-6">設定</h1>
       <div className="space-y-6">
-        <SettingsForm profile={profile} isReadOnly={isReadOnly} />
         <ContactSettingsForm
           contactEmail={systemSettings.contactEmail}
           contactPhone={systemSettings.contactPhone}

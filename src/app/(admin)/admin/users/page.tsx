@@ -2,6 +2,7 @@ import { createAdminClient } from '@/lib/supabase/admin'
 import { getAdminProfile } from '@/utils/auth'
 import { UserApprovalCard } from '@/components/admin/UserApprovalCard'
 import { GlobalLoginToggle } from '@/components/admin/GlobalLoginToggle'
+import { SelfProfileCard } from '@/components/admin/SelfProfileCard'
 
 async function getUsers() {
   const supabase = createAdminClient()
@@ -65,7 +66,7 @@ export default async function AdminUsersPage() {
           <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-3">
             自分のアカウント
           </h2>
-          <UserApprovalCard key={selfUser.id} user={selfUser} isReadOnly={isReadOnly} isSelf={true} />
+          <SelfProfileCard user={selfUser} isDeveloper={isReadOnly} />
         </section>
       )}
 
