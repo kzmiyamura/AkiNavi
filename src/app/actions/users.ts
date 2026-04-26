@@ -159,6 +159,31 @@ export async function deleteUser(
   return { success: 'ユーザーを削除しました' }
 }
 
+export async function changeUserRole(
+  _prev: UserActionState,
+  formData: FormData
+): Promise<UserActionState> {
+  const adminProfile = await getAdminProfile()
+  if (adminProfile.role !== 'admin') return { error: '管理者のみ実行できます' }
+  const supabase = createAdminClient()
+
+  const userId = formData.get('user_id') as string
+  const rawRole = formData.get('role') as string
+  const role: 'admin' | 'user' | 'developer' =
+    rawRole === 'admin' ? 'admin' : rawRole === 'developer' ? 'developer' : 'user'
+
+  const { error } = await supabase
+    .from('profiles')
+    .update({ role, updated_at: new Date().toISOString() })
+    .eq('id', userId)
+
+  if (error) return { error: 'ロールの変更に失敗しました' }
+
+  revalidatePath('/admin/users')
+  const label = role === 'admin' ? '管理者' : role === 'developer' ? '開発者' : '一般ユーザー'
+  return { success: `${label}に変更しました` }
+}
+
 export async function updateAdminNotes(
   _prev: UserActionState,
   formData: FormData
