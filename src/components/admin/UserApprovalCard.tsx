@@ -29,7 +29,7 @@ const ROLE_CHANGE_BUTTONS: { role: 'admin' | 'user' | 'developer'; label: string
   { role: 'admin',     label: '管理者に変更',    className: 'border-red-200 text-red-700 hover:bg-red-50' },
 ]
 
-export function UserApprovalCard({ user, isReadOnly = false }: { user: User; isReadOnly?: boolean }) {
+export function UserApprovalCard({ user, isReadOnly = false, isSelf = false }: { user: User; isReadOnly?: boolean; isSelf?: boolean }) {
   const [result, setResult] = useState<{ error?: string; success?: string }>()
   const [showRoleChange, setShowRoleChange] = useState(false)
   const [isPending, startTransition] = useTransition()
@@ -124,7 +124,7 @@ export function UserApprovalCard({ user, isReadOnly = false }: { user: User; isR
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
               <p className="font-semibold text-slate-800">
-                {isReadOnly ? MASK : (user.full_name ?? '（氏名未設定）')}
+                {isReadOnly && !isSelf ? MASK : (user.full_name ?? '（氏名未設定）')}
               </p>
               {!user.is_approved ? (
                 <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
@@ -141,9 +141,9 @@ export function UserApprovalCard({ user, isReadOnly = false }: { user: User; isR
                 </span>
               )}
             </div>
-            <p className="text-sm text-slate-500 mt-0.5">{isReadOnly ? MASK : user.company_name}</p>
+            <p className="text-sm text-slate-500 mt-0.5">{isReadOnly && !isSelf ? MASK : user.company_name}</p>
             <p className="text-xs text-slate-400 mt-1">
-              {isReadOnly ? MASK : user.email} · 登録日: {registeredAt}
+              {isReadOnly && !isSelf ? MASK : user.email} · 登録日: {registeredAt}
             </p>
           </div>
 

@@ -32,8 +32,10 @@ export default async function AdminUsersPage() {
     getGlobalLoginEnabled(),
   ])
   const isReadOnly = viewer.role === 'developer'
-  const pending = users.filter((u) => !u.is_approved)
-  const approved = users.filter((u) => u.is_approved)
+  const selfUser = users.find((u) => u.id === viewer.id)
+  const otherUsers = users.filter((u) => u.id !== viewer.id)
+  const pending = otherUsers.filter((u) => !u.is_approved)
+  const approved = otherUsers.filter((u) => u.is_approved)
 
   return (
     <div>
@@ -56,6 +58,16 @@ export default async function AdminUsersPage() {
           CSV出力
         </a>
       </div>
+
+      {/* 自分のアカウント */}
+      {selfUser && (
+        <section className="mb-8">
+          <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-3">
+            自分のアカウント
+          </h2>
+          <UserApprovalCard key={selfUser.id} user={selfUser} isReadOnly={isReadOnly} isSelf={true} />
+        </section>
+      )}
 
       {/* 全体ログイン制御（管理者のみ） */}
       {!isReadOnly && (
