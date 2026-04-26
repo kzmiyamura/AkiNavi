@@ -48,9 +48,11 @@ export default async function EditPropertyPage({
         <span className="text-slate-600 font-medium truncate">{property.name}</span>
       </nav>
 
-      <div className="flex items-start justify-between mb-6">
-        <h1 className="text-2xl font-bold text-slate-800">{property.name} を編集</h1>
-
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+        <h1 className="text-2xl font-bold text-slate-800 min-w-0">
+          <span className="block truncate">{property.name}</span>
+          <span className="text-lg text-slate-500 font-medium">を編集</span>
+        </h1>
         <DeletePropertyButton propertyId={property.id} propertyName={property.name} />
       </div>
 

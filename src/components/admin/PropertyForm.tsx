@@ -83,8 +83,8 @@ export function PropertyForm({ property, initialRooms = [] }: Props) {
             required
             defaultValue={property?.name}
             placeholder="〇〇マンション"
-            className="w-full px-4 py-2.5 rounded-lg border border-slate-300 text-sm
-              focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full px-4 py-2.5 rounded-lg border border-slate-300 text-base text-slate-900
+              placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
         </div>
 
@@ -98,8 +98,8 @@ export function PropertyForm({ property, initialRooms = [] }: Props) {
             required
             defaultValue={property?.address}
             placeholder="〇〇市〇〇町1-1-1"
-            className="w-full px-4 py-2.5 rounded-lg border border-slate-300 text-sm
-              focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full px-4 py-2.5 rounded-lg border border-slate-300 text-base text-slate-900
+              placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
         </div>
       </div>
