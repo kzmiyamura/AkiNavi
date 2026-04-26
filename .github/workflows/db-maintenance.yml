@@ -2,11 +2,9 @@ name: DB Maintenance
 
 on:
   schedule:
-    # 毎日 02:00 UTC に Materialized View を更新
-    - cron: '0 2 * * *'
-    # 毎日 02:10 UTC に古い view_logs を削除
-    - cron: '10 2 * * *'
-  workflow_dispatch: # 手動実行も可能
+    - cron: '0 2 * * *'   # 毎日 02:00 UTC: Materialized View 更新
+    - cron: '10 2 * * *'  # 毎日 02:10 UTC: 古い view_logs 削除
+  workflow_dispatch:
 
 jobs:
   refresh-materialized-view:
@@ -16,8 +14,11 @@ jobs:
     steps:
       - name: Refresh Materialized View
         run: |
-          psql "${{ secrets.SUPABASE_DB_URL }}" \
-            -c "REFRESH MATERIALIZED VIEW CONCURRENTLY daily_room_stats;"
+          curl -sf -X POST \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/rpc/refresh_daily_stats" \
+            -H "apikey: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Content-Type: application/json"
 
   purge-old-view-logs:
     name: Purge view_logs older than 3 months
@@ -26,5 +27,8 @@ jobs:
     steps:
       - name: Delete old view_logs
         run: |
-          psql "${{ secrets.SUPABASE_DB_URL }}" \
-            -c "DELETE FROM view_logs WHERE viewed_at < NOW() - INTERVAL '3 months';"
+          curl -sf -X POST \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/rpc/purge_old_view_logs" \
+            -H "apikey: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}" \
+            -H "Content-Type: application/json"
