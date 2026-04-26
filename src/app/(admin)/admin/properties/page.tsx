@@ -1,6 +1,9 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { getAdminProfile } from '@/utils/auth'
+
+const MASK = '••••••••'
 
 async function getProperties() {
   const supabase = createAdminClient()
@@ -20,7 +23,8 @@ async function getProperties() {
 }
 
 export default async function AdminPropertiesPage() {
-  const properties = await getProperties()
+  const [properties, profile] = await Promise.all([getProperties(), getAdminProfile()])
+  const isDeveloper = profile.role === 'developer'
 
   return (
     <div>
@@ -100,8 +104,8 @@ export default async function AdminPropertiesPage() {
 
                 {/* テキスト */}
                 <div className="flex-1 min-w-0">
-                  <p className="font-semibold text-slate-800 truncate">{property.name}</p>
-                  <p className="text-sm text-slate-500 mt-0.5 truncate">{property.address}</p>
+                  <p className="font-semibold text-slate-800 truncate">{isDeveloper ? MASK : property.name}</p>
+                  <p className="text-sm text-slate-500 mt-0.5 truncate">{isDeveloper ? MASK : property.address}</p>
                   <p className="text-xs text-slate-400 mt-1">
                     空室 {vacantCount} / {totalCount} 部屋
                   </p>

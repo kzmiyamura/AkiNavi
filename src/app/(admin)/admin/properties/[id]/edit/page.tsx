@@ -1,9 +1,12 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createAdminClient } from '@/lib/supabase/admin'
+import { getAdminProfile } from '@/utils/auth'
 import { PropertyForm } from '@/components/admin/PropertyForm'
 import { DeletePropertyButton } from '@/components/admin/DeletePropertyButton'
 import type { RoomInput } from '@/app/actions/properties'
+
+const MASK = '••••••••'
 
 async function getProperty(id: string) {
   const supabase = createAdminClient()
@@ -31,11 +34,13 @@ export default async function EditPropertyPage({
   params: Promise<{ id: string }>
 }) {
   const { id } = await params
-  const data = await getProperty(id)
+  const [data, profile] = await Promise.all([getProperty(id), getAdminProfile()])
 
   if (!data) notFound()
 
   const { property, rooms } = data
+  const isDeveloper = profile.role === 'developer'
+  const displayName = isDeveloper ? MASK : property.name
 
   return (
     <div className="max-w-3xl mx-auto">
@@ -45,18 +50,20 @@ export default async function EditPropertyPage({
           物件管理
         </Link>
         <span>/</span>
-        <span className="text-slate-600 font-medium truncate">{property.name}</span>
+        <span className="text-slate-600 font-medium truncate">{displayName}</span>
       </nav>
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <h1 className="text-2xl font-bold text-slate-800 min-w-0">
-          <span className="block truncate">{property.name}</span>
+          <span className="block truncate">{displayName}</span>
           <span className="text-lg text-slate-500 font-medium">を編集</span>
         </h1>
-        <DeletePropertyButton propertyId={property.id} propertyName={property.name} />
+        {!isDeveloper && (
+          <DeletePropertyButton propertyId={property.id} propertyName={property.name} />
+        )}
       </div>
 
-      <PropertyForm property={property} initialRooms={rooms} />
+      <PropertyForm property={property} initialRooms={rooms} isDeveloper={isDeveloper} />
     </div>
   )
 }

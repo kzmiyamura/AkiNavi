@@ -15,6 +15,7 @@ type Props = {
     image_paths?: string[]
   }
   initialRooms?: RoomInput[]
+  isDeveloper?: boolean
 }
 
 const STATUS_OPTIONS: { value: RoomInput['status']; label: string; color: string }[] = [
@@ -27,7 +28,9 @@ function newRow(): RoomInput {
   return { room_number: '', rent: 0, common_fee: 0, status: 'vacant' }
 }
 
-export function PropertyForm({ property, initialRooms = [] }: Props) {
+const MASK = '••••••••'
+
+export function PropertyForm({ property, initialRooms = [], isDeveloper = false }: Props) {
   const router = useRouter()
   const [state, action, isPending] = useActionState(saveProperty, undefined)
   const [rows, setRows] = useState<RoomInput[]>(
@@ -75,32 +78,50 @@ export function PropertyForm({ property, initialRooms = [] }: Props) {
 
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">
-            物件名 <span className="text-red-500">*</span>
+            物件名 {!isDeveloper && <span className="text-red-500">*</span>}
           </label>
-          <input
-            name="name"
-            type="text"
-            required
-            defaultValue={property?.name}
-            placeholder="〇〇マンション"
-            className="w-full px-4 py-2.5 rounded-lg border border-slate-300 text-base text-slate-900
-              placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          />
+          {isDeveloper ? (
+            <>
+              <input type="hidden" name="name" value={property?.name ?? ''} />
+              <div className="w-full px-4 py-2.5 rounded-lg border border-slate-200 bg-slate-50 text-base text-slate-400 select-none">
+                {MASK}
+              </div>
+            </>
+          ) : (
+            <input
+              name="name"
+              type="text"
+              required
+              defaultValue={property?.name}
+              placeholder="〇〇マンション"
+              className="w-full px-4 py-2.5 rounded-lg border border-slate-300 text-base text-slate-900
+                placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          )}
         </div>
 
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">
-            所在地 <span className="text-red-500">*</span>
+            所在地 {!isDeveloper && <span className="text-red-500">*</span>}
           </label>
-          <input
-            name="address"
-            type="text"
-            required
-            defaultValue={property?.address}
-            placeholder="〇〇市〇〇町1-1-1"
-            className="w-full px-4 py-2.5 rounded-lg border border-slate-300 text-base text-slate-900
-              placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          />
+          {isDeveloper ? (
+            <>
+              <input type="hidden" name="address" value={property?.address ?? ''} />
+              <div className="w-full px-4 py-2.5 rounded-lg border border-slate-200 bg-slate-50 text-base text-slate-400 select-none">
+                {MASK}
+              </div>
+            </>
+          ) : (
+            <input
+              name="address"
+              type="text"
+              required
+              defaultValue={property?.address}
+              placeholder="〇〇市〇〇町1-1-1"
+              className="w-full px-4 py-2.5 rounded-lg border border-slate-300 text-base text-slate-900
+                placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          )}
         </div>
       </div>
 
