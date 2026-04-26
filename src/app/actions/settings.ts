@@ -74,6 +74,8 @@ export async function saveUserProfile(
   const newPassword = (formData.get('new_password') as string).trim()
   const confirmPassword = (formData.get('confirm_password') as string).trim()
 
+  console.log('[saveUserProfile] newPassword length:', newPassword.length, '| confirmPassword length:', confirmPassword.length)
+
   // confirmPassword が空の場合はパスワード変更をスキップ（ブラウザ自動補完対策）
   if (confirmPassword) {
     if (newPassword !== confirmPassword) {
