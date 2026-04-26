@@ -23,13 +23,14 @@ async function getProperty(id: string) {
 async function getAdminContact() {
   const supabase = createAdminClient()
   const { data } = await supabase
-    .from('profiles')
-    .select('email, phone_number')
-    .eq('role', 'admin')
-    .order('approval_date', { ascending: true })
-    .limit(1)
-    .maybeSingle()
-  return { email: data?.email ?? '', phone: (data as Record<string, unknown>)?.phone_number as string ?? '' }
+    .from('system_settings')
+    .select('contact_email, contact_phone')
+    .eq('id', 1)
+    .single()
+  return {
+    email: (data as Record<string, unknown>)?.contact_email as string ?? '',
+    phone: (data as Record<string, unknown>)?.contact_phone as string ?? '',
+  }
 }
 
 export default async function PropertyDetailPage({
