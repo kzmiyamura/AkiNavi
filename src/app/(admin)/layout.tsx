@@ -1,6 +1,7 @@
 import { getAdminProfile } from '@/utils/auth'
 import { AdminSidebar } from '@/components/admin/AdminSidebar'
 import { AdminMobileNav } from '@/components/admin/AdminMobileNav'
+import { AdminMobileLogoutButton } from '@/components/admin/AdminMobileLogoutButton'
 import Link from 'next/link'
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -18,8 +19,11 @@ export default async function AdminLayout({ children }: { children: React.ReactN
       <div className="flex flex-1 flex-col min-w-0">
         {/* モバイル: トップヘッダー */}
         <header className="md:hidden flex items-center justify-between px-4 py-3 bg-slate-900 text-white">
-          <span className="text-lg font-bold text-indigo-400">AkiNavi</span>
-          <span className="text-xs text-slate-400">管理画面</span>
+          <div>
+            <span className="text-lg font-bold text-indigo-400">AkiNavi</span>
+            <span className="ml-2 text-xs text-slate-400">管理画面</span>
+          </div>
+          <AdminMobileLogoutButton />
         </header>
 
         {/* ページコンテンツ */}
