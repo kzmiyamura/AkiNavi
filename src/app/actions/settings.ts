@@ -21,8 +21,8 @@ export async function saveAdminSettings(
   const newPassword = (formData.get('new_password') as string).trim()
   const confirmPassword = (formData.get('confirm_password') as string).trim()
 
-  // パスワード変更
-  if (newPassword) {
+  // パスワード変更（confirmPassword が空の場合はスキップ＝ブラウザ自動補完対策）
+  if (confirmPassword) {
     if (newPassword !== confirmPassword) {
       return { error: '新しいパスワードが一致しません' }
     }
@@ -73,8 +73,6 @@ export async function saveUserProfile(
   const phoneNumber = (formData.get('phone_number') as string).trim()
   const newPassword = (formData.get('new_password') as string).trim()
   const confirmPassword = (formData.get('confirm_password') as string).trim()
-
-  console.log('[saveUserProfile] newPassword length:', newPassword.length, '| confirmPassword length:', confirmPassword.length)
 
   // confirmPassword が空の場合はパスワード変更をスキップ（ブラウザ自動補完対策）
   if (confirmPassword) {
