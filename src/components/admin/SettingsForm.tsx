@@ -10,7 +10,7 @@ const MASK = '••••••••'
 export function SettingsForm({ profile, isReadOnly = false }: { profile: Profile; isReadOnly?: boolean }) {
   const [state, action, isPending] = useActionState(saveAdminSettings, undefined)
 
-  const inputClass = `w-full px-4 py-2.5 rounded-lg border text-sm focus:outline-none
+  const inputClass = `w-full px-4 py-2.5 rounded-lg border text-base focus:outline-none
     ${isReadOnly
       ? 'border-slate-200 bg-slate-50 text-slate-400 cursor-not-allowed select-none'
       : 'border-slate-300 focus:ring-2 focus:ring-indigo-500'}`
