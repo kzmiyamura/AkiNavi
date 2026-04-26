@@ -11,17 +11,16 @@ export async function saveAdminSettings(
   formData: FormData
 ): Promise<SettingsState> {
   const profile = await getAdminProfile()
-  if (profile.role === 'developer') return { error: '開発者アカウントは設定を変更できません' }
   const supabase = createAdminClient()
+  const isDeveloper = profile.role === 'developer'
 
   const fullName = (formData.get('full_name') as string).trim()
   const companyName = (formData.get('company_name') as string).trim()
   const phoneNumber = (formData.get('phone_number') as string).trim()
-  const newEmail = (formData.get('email') as string).trim()
   const newPassword = (formData.get('new_password') as string).trim()
   const confirmPassword = (formData.get('confirm_password') as string).trim()
 
-  // パスワード変更（confirmPassword が空の場合はスキップ＝ブラウザ自動補完対策）
+  // パスワード変更（開発者も可。confirmPassword が空の場合はスキップ）
   if (confirmPassword) {
     if (newPassword !== confirmPassword) {
       return { error: '新しいパスワードが一致しません' }
@@ -35,22 +34,28 @@ export async function saveAdminSettings(
     if (error) return { error: 'パスワードの変更に失敗しました' }
   }
 
-  // メールアドレス変更
-  if (newEmail && newEmail !== profile.email) {
-    const { error } = await supabase.auth.admin.updateUserById(profile.id, {
-      email: newEmail,
-    })
-    if (error) return { error: 'メールアドレスの変更に失敗しました' }
+  // メールアドレス変更（管理者のみ）
+  if (!isDeveloper) {
+    const newEmail = (formData.get('email') as string).trim()
+    if (newEmail && newEmail !== profile.email) {
+      const { error } = await supabase.auth.admin.updateUserById(profile.id, {
+        email: newEmail,
+      })
+      if (error) return { error: 'メールアドレスの変更に失敗しました' }
+      await supabase
+        .from('profiles')
+        .update({ email: newEmail, updated_at: new Date().toISOString() })
+        .eq('id', profile.id)
+    }
   }
 
-  // profiles テーブル更新
+  // プロフィール更新（開発者も可）
   const { error: profileError } = await supabase
     .from('profiles')
     .update({
       full_name: fullName || null,
       company_name: companyName || null,
       phone_number: phoneNumber || null,
-      email: newEmail || profile.email,
       updated_at: new Date().toISOString(),
     })
     .eq('id', profile.id)
