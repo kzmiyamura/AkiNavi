@@ -174,24 +174,24 @@ export function PropertyForm({ property, initialRooms = [], isDeveloper = false 
 
         {/* デスクトップ: テーブル表示 */}
         <div className="hidden md:block overflow-x-auto">
-          <table className="w-full text-sm">
+          <table className="min-w-[1000px] w-full text-sm">
             <thead className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wide">
               <tr>
-                <th className="px-4 py-3 text-left w-24">号室</th>
-                <th className="px-4 py-3 text-left w-32">家賃（円）</th>
-                <th className="px-4 py-3 text-left w-32">共益費（円）</th>
-                <th className="px-4 py-3 text-left w-48">水道代</th>
-                <th className="px-4 py-3 text-left w-32">礼金（円）</th>
-                <th className="px-4 py-3 text-left w-32">広告料</th>
-                <th className="px-4 py-3 text-left w-48">備考</th>
-                <th className="px-4 py-3 text-left">状態</th>
-                <th className="px-4 py-3 w-12" />
+                <th className="px-3 py-3 text-left w-20">号室</th>
+                <th className="px-3 py-3 text-left w-28">家賃（円）</th>
+                <th className="px-3 py-3 text-left w-28">共益費（円）</th>
+                <th className="px-3 py-3 text-left w-44">水道代</th>
+                <th className="px-3 py-3 text-left w-28">礼金（円）</th>
+                <th className="px-3 py-3 text-left w-28">広告料</th>
+                <th className="px-3 py-3 text-left w-40">備考</th>
+                <th className="px-3 py-3 text-left w-32">状態</th>
+                <th className="px-3 py-3 w-10" />
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
               {rows.map((row, i) => (
                 <tr key={i} className="hover:bg-slate-50/50">
-                  <td className="px-4 py-2">
+                  <td className="px-2 py-2">
                     <input
                       type="text"
                       value={row.room_number}
@@ -201,7 +201,7 @@ export function PropertyForm({ property, initialRooms = [], isDeveloper = false 
                         focus:outline-none focus:ring-1 focus:ring-indigo-500 text-base text-slate-900 placeholder:text-slate-400"
                     />
                   </td>
-                  <td className="px-4 py-2">
+                  <td className="px-2 py-2">
                     <input
                       type="number"
                       value={row.rent || ''}
@@ -212,7 +212,7 @@ export function PropertyForm({ property, initialRooms = [], isDeveloper = false 
                         focus:outline-none focus:ring-1 focus:ring-indigo-500 text-base text-slate-900 placeholder:text-slate-400"
                     />
                   </td>
-                  <td className="px-4 py-2">
+                  <td className="px-2 py-2">
                     <input
                       type="number"
                       value={row.common_fee || ''}
@@ -223,7 +223,7 @@ export function PropertyForm({ property, initialRooms = [], isDeveloper = false 
                         focus:outline-none focus:ring-1 focus:ring-indigo-500 text-base text-slate-900 placeholder:text-slate-400"
                     />
                   </td>
-                  <td className="px-4 py-2">
+                  <td className="px-2 py-2">
                     <select
                       value={row.water_fee_type ?? ''}
                       onChange={(e) => updateRow(i, 'water_fee_type', (e.target.value || null) as RoomInput['water_fee_type'])}
@@ -246,7 +246,7 @@ export function PropertyForm({ property, initialRooms = [], isDeveloper = false 
                       />
                     )}
                   </td>
-                  <td className="px-4 py-2">
+                  <td className="px-2 py-2">
                     <input
                       type="number"
                       value={row.key_money ?? ''}
@@ -257,7 +257,7 @@ export function PropertyForm({ property, initialRooms = [], isDeveloper = false 
                         focus:outline-none focus:ring-1 focus:ring-indigo-500 text-base text-slate-900 placeholder:text-slate-400"
                     />
                   </td>
-                  <td className="px-4 py-2">
+                  <td className="px-2 py-2">
                     <select
                       value={row.ad_months ?? ''}
                       onChange={(e) => updateRow(i, 'ad_months', e.target.value ? Number(e.target.value) : null)}
@@ -270,7 +270,7 @@ export function PropertyForm({ property, initialRooms = [], isDeveloper = false 
                       ))}
                     </select>
                   </td>
-                  <td className="px-4 py-2">
+                  <td className="px-2 py-2">
                     <input
                       type="text"
                       value={row.notes}
@@ -280,7 +280,7 @@ export function PropertyForm({ property, initialRooms = [], isDeveloper = false 
                         focus:outline-none focus:ring-1 focus:ring-indigo-500 text-base text-slate-900 placeholder:text-slate-400"
                     />
                   </td>
-                  <td className="px-4 py-2">
+                  <td className="px-2 py-2">
                     <select
                       value={row.status}
                       onChange={(e) => updateRow(i, 'status', e.target.value as RoomInput['status'])}
