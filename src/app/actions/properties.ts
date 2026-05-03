@@ -215,6 +215,11 @@ export async function importCsv(
       room_number: cols[idx('room_number')],
       rent: parseInt(cols[idx('rent')], 10),
       common_fee: parseInt(cols[idx('common_fee')], 10),
+      water_fee_type: null,
+      water_fee_amount: null,
+      key_money: null,
+      ad_months: null,
+      notes: '',
       status: cols[idx('status')] as RoomInput['status'],
     })
   }
