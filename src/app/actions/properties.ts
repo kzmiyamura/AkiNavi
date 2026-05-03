@@ -12,6 +12,11 @@ export type RoomInput = {
   room_number: string
   rent: number
   common_fee: number
+  water_fee_type: 'fixed' | 'meter' | null
+  water_fee_amount: number | null
+  key_money: number | null
+  ad_months: number | null
+  notes: string
   status: 'vacant' | 'occupied' | 'hidden'
 }
 
@@ -27,6 +32,7 @@ export async function saveProperty(
   const propertyId = formData.get('property_id') as string | null
   const name = (formData.get('name') as string).trim()
   const address = (formData.get('address') as string).trim()
+  const propertyNotes = (formData.get('property_notes') as string | null)?.trim() ?? ''
   const roomsJson = formData.get('rooms') as string
   const imagePathsJson = formData.get('image_paths') as string
 
@@ -53,7 +59,7 @@ export async function saveProperty(
   if (!propertyId) {
     const { data, error } = await supabase
       .from('properties')
-      .insert({ name, address, image_paths: imagePaths })
+      .insert({ name, address, image_paths: imagePaths, notes: propertyNotes || null })
       .select('id')
       .single()
 
@@ -62,7 +68,7 @@ export async function saveProperty(
   } else {
     const { error } = await supabase
       .from('properties')
-      .update({ name, address, image_paths: imagePaths })
+      .update({ name, address, image_paths: imagePaths, notes: propertyNotes || null })
       .eq('id', propertyId)
 
     if (error) return { error: '物件の更新に失敗しました' }
@@ -75,6 +81,11 @@ export async function saveProperty(
     room_number: r.room_number,
     rent: r.rent,
     common_fee: r.common_fee,
+    water_fee_type: r.water_fee_type ?? null,
+    water_fee_amount: r.water_fee_type === 'fixed' ? (r.water_fee_amount ?? null) : null,
+    key_money: r.key_money ?? null,
+    ad_months: r.ad_months ?? null,
+    notes: r.notes || null,
     status: r.status,
     updated_at: new Date().toISOString(),
   }))

@@ -13,7 +13,7 @@ async function getProperty(id: string) {
 
   const { data: property } = await supabase
     .from('properties')
-    .select('id, name, address, image_paths')
+    .select('id, name, address, image_paths, notes')
     .eq('id', id)
     .single()
 
@@ -21,7 +21,7 @@ async function getProperty(id: string) {
 
   const { data: rooms } = await supabase
     .from('rooms')
-    .select('id, room_number, rent, common_fee, status')
+    .select('id, room_number, rent, common_fee, water_fee_type, water_fee_amount, key_money, ad_months, notes, status')
     .eq('property_id', id)
     .order('room_number')
 

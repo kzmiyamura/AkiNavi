@@ -13,6 +13,7 @@ type Props = {
     name: string
     address: string
     image_paths?: string[]
+    notes?: string | null
   }
   initialRooms?: RoomInput[]
   isDeveloper?: boolean
@@ -24,8 +25,10 @@ const STATUS_OPTIONS: { value: RoomInput['status']; label: string; color: string
   { value: 'hidden',   label: '非表示',     color: 'text-red-600 bg-red-50' },
 ]
 
+const AD_MONTHS_OPTIONS = [1, 1.5, 2, 2.5, 3]
+
 function newRow(): RoomInput {
-  return { room_number: '', rent: 0, common_fee: 0, status: 'vacant' }
+  return { room_number: '', rent: 0, common_fee: 0, water_fee_type: null, water_fee_amount: null, key_money: null, ad_months: null, notes: '', status: 'vacant' }
 }
 
 const MASK = '••••••••'
@@ -125,6 +128,19 @@ export function PropertyForm({ property, initialRooms = [], isDeveloper = false 
         </div>
       </div>
 
+        <div>
+          <label className="block text-sm font-medium text-slate-700 mb-1">物件備考</label>
+          <textarea
+            name="property_notes"
+            defaultValue={property?.notes ?? ''}
+            rows={3}
+            placeholder="物件全体に関する備考を入力"
+            className="w-full px-4 py-2.5 rounded-lg border border-slate-300 text-base text-slate-900
+              placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+          />
+        </div>
+      </div>
+
       {/* 画像アップロード */}
       <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-4">
         <h2 className="text-base font-semibold text-slate-700">チラシ・物件画像</h2>
@@ -162,9 +178,13 @@ export function PropertyForm({ property, initialRooms = [], isDeveloper = false 
           <table className="w-full text-sm">
             <thead className="bg-slate-50 text-slate-500 text-xs uppercase tracking-wide">
               <tr>
-                <th className="px-4 py-3 text-left w-28">号室</th>
-                <th className="px-4 py-3 text-left w-36">家賃（円）</th>
-                <th className="px-4 py-3 text-left w-36">共益費（円）</th>
+                <th className="px-4 py-3 text-left w-24">号室</th>
+                <th className="px-4 py-3 text-left w-32">家賃（円）</th>
+                <th className="px-4 py-3 text-left w-32">共益費（円）</th>
+                <th className="px-4 py-3 text-left w-48">水道代</th>
+                <th className="px-4 py-3 text-left w-32">礼金（円）</th>
+                <th className="px-4 py-3 text-left w-32">広告料</th>
+                <th className="px-4 py-3 text-left w-48">備考</th>
                 <th className="px-4 py-3 text-left">状態</th>
                 <th className="px-4 py-3 w-12" />
               </tr>
@@ -200,6 +220,63 @@ export function PropertyForm({ property, initialRooms = [], isDeveloper = false 
                       onChange={(e) => updateRow(i, 'common_fee', Number(e.target.value))}
                       placeholder="3000"
                       min={0}
+                      className="w-full px-2 py-1.5 rounded border border-slate-200
+                        focus:outline-none focus:ring-1 focus:ring-indigo-500 text-base text-slate-900 placeholder:text-slate-400"
+                    />
+                  </td>
+                  <td className="px-4 py-2">
+                    <select
+                      value={row.water_fee_type ?? ''}
+                      onChange={(e) => updateRow(i, 'water_fee_type', (e.target.value || null) as RoomInput['water_fee_type'])}
+                      className="w-full px-2 py-1.5 rounded border border-slate-200
+                        focus:outline-none focus:ring-1 focus:ring-indigo-500 text-base text-slate-900"
+                    >
+                      <option value="">未設定</option>
+                      <option value="fixed">金額固定</option>
+                      <option value="meter">メーター検針</option>
+                    </select>
+                    {row.water_fee_type === 'fixed' && (
+                      <input
+                        type="number"
+                        value={row.water_fee_amount ?? ''}
+                        onChange={(e) => updateRow(i, 'water_fee_amount', e.target.value ? Number(e.target.value) : null)}
+                        placeholder="2000"
+                        min={0}
+                        className="mt-1 w-full px-2 py-1.5 rounded border border-slate-200
+                          focus:outline-none focus:ring-1 focus:ring-indigo-500 text-base text-slate-900 placeholder:text-slate-400"
+                      />
+                    )}
+                  </td>
+                  <td className="px-4 py-2">
+                    <input
+                      type="number"
+                      value={row.key_money ?? ''}
+                      onChange={(e) => updateRow(i, 'key_money', e.target.value ? Number(e.target.value) : null)}
+                      placeholder="0"
+                      min={0}
+                      className="w-full px-2 py-1.5 rounded border border-slate-200
+                        focus:outline-none focus:ring-1 focus:ring-indigo-500 text-base text-slate-900 placeholder:text-slate-400"
+                    />
+                  </td>
+                  <td className="px-4 py-2">
+                    <select
+                      value={row.ad_months ?? ''}
+                      onChange={(e) => updateRow(i, 'ad_months', e.target.value ? Number(e.target.value) : null)}
+                      className="w-full px-2 py-1.5 rounded border border-slate-200
+                        focus:outline-none focus:ring-1 focus:ring-indigo-500 text-base text-slate-900"
+                    >
+                      <option value="">未設定</option>
+                      {AD_MONTHS_OPTIONS.map((m) => (
+                        <option key={m} value={m}>{m}ヶ月</option>
+                      ))}
+                    </select>
+                  </td>
+                  <td className="px-4 py-2">
+                    <input
+                      type="text"
+                      value={row.notes}
+                      onChange={(e) => updateRow(i, 'notes', e.target.value)}
+                      placeholder="備考"
                       className="w-full px-2 py-1.5 rounded border border-slate-200
                         focus:outline-none focus:ring-1 focus:ring-indigo-500 text-base text-slate-900 placeholder:text-slate-400"
                     />
@@ -266,19 +343,6 @@ export function PropertyForm({ property, initialRooms = [], isDeveloper = false 
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-slate-500 mb-1 block">状態</label>
-                  <select
-                    value={row.status}
-                    onChange={(e) => updateRow(i, 'status', e.target.value as RoomInput['status'])}
-                    className="w-full px-3 py-2 rounded-lg border border-slate-200
-                      focus:outline-none focus:ring-1 focus:ring-indigo-500 text-base text-slate-900"
-                  >
-                    {STATUS_OPTIONS.map((s) => (
-                      <option key={s.value} value={s.value}>{s.label}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
                   <label className="text-xs text-slate-500 mb-1 block">家賃（円）</label>
                   <input
                     type="number"
@@ -298,6 +362,80 @@ export function PropertyForm({ property, initialRooms = [], isDeveloper = false 
                     onChange={(e) => updateRow(i, 'common_fee', Number(e.target.value))}
                     placeholder="3000"
                     min={0}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200
+                      focus:outline-none focus:ring-1 focus:ring-indigo-500 text-base text-slate-900 placeholder:text-slate-400"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-slate-500 mb-1 block">水道代</label>
+                  <select
+                    value={row.water_fee_type ?? ''}
+                    onChange={(e) => updateRow(i, 'water_fee_type', (e.target.value || null) as RoomInput['water_fee_type'])}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200
+                      focus:outline-none focus:ring-1 focus:ring-indigo-500 text-base text-slate-900"
+                  >
+                    <option value="">未設定</option>
+                    <option value="fixed">金額固定</option>
+                    <option value="meter">メーター検針</option>
+                  </select>
+                  {row.water_fee_type === 'fixed' && (
+                    <input
+                      type="number"
+                      value={row.water_fee_amount ?? ''}
+                      onChange={(e) => updateRow(i, 'water_fee_amount', e.target.value ? Number(e.target.value) : null)}
+                      placeholder="2000"
+                      min={0}
+                      className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200
+                        focus:outline-none focus:ring-1 focus:ring-indigo-500 text-base text-slate-900 placeholder:text-slate-400"
+                    />
+                  )}
+                </div>
+                <div>
+                  <label className="text-xs text-slate-500 mb-1 block">礼金（円）</label>
+                  <input
+                    type="number"
+                    value={row.key_money ?? ''}
+                    onChange={(e) => updateRow(i, 'key_money', e.target.value ? Number(e.target.value) : null)}
+                    placeholder="0"
+                    min={0}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200
+                      focus:outline-none focus:ring-1 focus:ring-indigo-500 text-base text-slate-900 placeholder:text-slate-400"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs text-slate-500 mb-1 block">広告料</label>
+                  <select
+                    value={row.ad_months ?? ''}
+                    onChange={(e) => updateRow(i, 'ad_months', e.target.value ? Number(e.target.value) : null)}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200
+                      focus:outline-none focus:ring-1 focus:ring-indigo-500 text-base text-slate-900"
+                  >
+                    <option value="">未設定</option>
+                    {AD_MONTHS_OPTIONS.map((m) => (
+                      <option key={m} value={m}>{m}ヶ月</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs text-slate-500 mb-1 block">状態</label>
+                  <select
+                    value={row.status}
+                    onChange={(e) => updateRow(i, 'status', e.target.value as RoomInput['status'])}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200
+                      focus:outline-none focus:ring-1 focus:ring-indigo-500 text-base text-slate-900"
+                  >
+                    {STATUS_OPTIONS.map((s) => (
+                      <option key={s.value} value={s.value}>{s.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="col-span-2">
+                  <label className="text-xs text-slate-500 mb-1 block">備考</label>
+                  <input
+                    type="text"
+                    value={row.notes}
+                    onChange={(e) => updateRow(i, 'notes', e.target.value)}
+                    placeholder="備考"
                     className="w-full px-3 py-2 rounded-lg border border-slate-200
                       focus:outline-none focus:ring-1 focus:ring-indigo-500 text-base text-slate-900 placeholder:text-slate-400"
                   />

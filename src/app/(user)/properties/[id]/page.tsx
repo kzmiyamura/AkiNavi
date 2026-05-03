@@ -11,8 +11,8 @@ async function getProperty(id: string) {
   const { data } = await supabase
     .from('properties')
     .select(`
-      id, name, address, image_paths,
-      rooms(id, room_number, rent, common_fee, status)
+      id, name, address, image_paths, notes,
+      rooms(id, room_number, rent, common_fee, water_fee_type, water_fee_amount, key_money, ad_months, notes, status)
     `)
     .eq('id', id)
     .single()
@@ -96,6 +96,11 @@ export default async function PropertyDetailPage({
           )}
         </div>
 
+        {/* 物件備考 */}
+        {property.notes && (
+          <p className="mt-3 text-sm text-slate-500 whitespace-pre-wrap">{property.notes}</p>
+        )}
+
         {/* 部屋一覧テーブル */}
         {rooms.length > 0 && (
           <div className="mt-6 bg-white rounded-2xl border border-slate-200 overflow-hidden">
@@ -108,6 +113,10 @@ export default async function PropertyDetailPage({
                   <th className="px-5 py-3 text-left">号室</th>
                   <th className="px-5 py-3 text-right">家賃</th>
                   <th className="px-5 py-3 text-right hidden sm:table-cell">共益費</th>
+                  <th className="px-5 py-3 text-right hidden sm:table-cell">水道代</th>
+                  <th className="px-5 py-3 text-right hidden sm:table-cell">礼金</th>
+                  <th className="px-5 py-3 text-right hidden sm:table-cell">広告料</th>
+                  <th className="px-5 py-3 text-left hidden sm:table-cell">備考</th>
                   <th className="px-5 py-3 text-center">状態</th>
                 </tr>
               </thead>
@@ -122,6 +131,22 @@ export default async function PropertyDetailPage({
                     </td>
                     <td className="px-5 py-3.5 text-right text-slate-400 text-xs hidden sm:table-cell">
                       {formatRent(room.common_fee)}
+                    </td>
+                    <td className="px-5 py-3.5 text-right text-slate-400 text-xs hidden sm:table-cell">
+                      {room.water_fee_type === 'meter'
+                        ? 'メーター検針'
+                        : room.water_fee_type === 'fixed' && room.water_fee_amount != null
+                          ? formatRent(room.water_fee_amount)
+                          : '-'}
+                    </td>
+                    <td className="px-5 py-3.5 text-right text-slate-400 text-xs hidden sm:table-cell">
+                      {room.key_money != null ? formatRent(room.key_money) : '-'}
+                    </td>
+                    <td className="px-5 py-3.5 text-right text-slate-400 text-xs hidden sm:table-cell">
+                      {room.ad_months != null ? `${room.ad_months}ヶ月` : '-'}
+                    </td>
+                    <td className="px-5 py-3.5 text-left text-slate-400 text-xs hidden sm:table-cell">
+                      {room.notes ?? '-'}
                     </td>
                     <td className="px-5 py-3.5 text-center">
                       {room.status === 'vacant' ? (
