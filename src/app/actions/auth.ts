@@ -142,6 +142,20 @@ export async function logout() {
   redirect('/login')
 }
 
+export async function updatePassword(_prev: AuthState, formData: FormData): Promise<AuthState> {
+  const supabase = await createClient()
+
+  const password = formData.get('password') as string
+
+  const { error } = await supabase.auth.updateUser({ password })
+
+  if (error) {
+    return { error: 'パスワードの更新に失敗しました。もう一度お試しください' }
+  }
+
+  redirect('/login')
+}
+
 export async function resetPassword(_prev: AuthState, formData: FormData): Promise<AuthState> {
   const supabase = await createClient()
 
