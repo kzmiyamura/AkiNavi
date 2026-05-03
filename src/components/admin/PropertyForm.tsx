@@ -126,7 +126,6 @@ export function PropertyForm({ property, initialRooms = [], isDeveloper = false 
             />
           )}
         </div>
-      </div>
 
         <div>
           <label className="block text-sm font-medium text-slate-700 mb-1">物件備考</label>
